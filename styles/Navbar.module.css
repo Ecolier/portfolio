@@ -1,0 +1,84 @@
+.navbar {
+    color: black;
+}
+
+.navContainer {
+    position: relative;
+    display: flex;
+    margin: 12pt;
+}
+
+.profilePicture {
+    background-image: url('/profile-picture.png');
+    width: 64px;
+    height: 64px;
+    background-size: contain;
+    margin-right: 12pt;
+    background-repeat: no-repeat;
+}
+
+.identity {
+    display: flex;
+    flex-direction: column;
+    margin-right: 12pt;
+}
+
+.separator {
+    width: 1px;
+    background-color: black;
+    align-self: stretch;
+    margin-right: 12pt;
+    opacity: .25;
+}
+
+.menu {
+    display: none;
+    position: absolute;
+    background-color: white;
+    color: black;
+    top: calc(100% + 6pt);
+    padding: 12pt;
+    right: 0;
+    border-radius: 6pt;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    flex-direction: column;
+    width: 100%;
+}
+
+.menuActive {
+    display: flex;
+}
+
+.menuItem {
+    padding: 12pt;
+}
+
+.button {
+    background-color: #DA4167;
+    border-radius: 0;
+    padding: 12pt;
+    cursor: pointer;
+    color: white;
+}
+
+.navLeft {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+}
+
+.navRight {
+    display: flex;
+    align-items: center;
+    margin-left: 12pt;
+}
+
+.menuIcon {
+    cursor: pointer;
+    font-size: 32px;
+    vertical-align: middle;
+}
+
+.job {
+    font-weight: bold;
+}

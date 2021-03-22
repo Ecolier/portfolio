@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="294" height="108" viewBox="0 0 294 108">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+        font-size: 16px;
+        font-family: monospace;
+      }
+    </style>
+  </defs>
+  <text id="const_app_express_await_countdown_10_app.listen_8080_console.log_launched_" data-name="const app = express();
+await countdown(10);
+app.listen(8080, () =&gt; {
+    console.log(‘launched!’);
+});
+" class="cls-1"><tspan x="0" y="14">const app = express();</tspan><tspan x="0" y="32">await countdown(10);</tspan><tspan x="0" y="50">app.listen(8080, () =&gt; {</tspan><tspan x="0" y="68" xml:space="preserve">    console.log(‘launched!’);</tspan><tspan x="0" y="86">});</tspan><tspan x="0" y="104"></tspan></text>
+</svg>
