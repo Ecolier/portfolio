@@ -1,10 +1,7 @@
-.container {
-    margin: 12pt;
-}
-
 .section {
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .space {
@@ -16,23 +13,16 @@
     padding-bottom: 75%;
 }
 
-.illustration {
-    position: relative;
-    width: 75%;
-    margin: 0 auto;
-}
-
-.spaceship {
-    background-image: url('/spaceship.svg');
-    background-position: center center;
+.window {
+    background-image: url('/window.svg');
+    background-position: top right;
     background-size: 100%;
-    width: 50%;
+    width: 100%;
     background-repeat: no-repeat;
-    padding-bottom: 75%;
-    position: absolute;
     z-index: 2;
-    right: -24px;
-    top: 24px;
+    align-self: flex-end;
+    padding-bottom: 75%;
+    margin-right: -30%;
 }
 
 .spaceOutline {
@@ -50,17 +40,8 @@
 
 .content {
     font-size: .82rem;
-}
-
-.code {
-    background-image: url('/code.svg');
-    background-position: 25% 45%;
-    background-size: 50%;
-    width: 100%;
-    background-repeat: no-repeat;
-    padding-bottom: 75%;
-    position: absolute;
-    z-index: 3;
+    padding: 12pt;
+    margin-bottom: 24pt;
 }
 
 .title {
@@ -72,4 +53,49 @@
     color: #DA4167;
     display: inline-block;
     border-bottom: 3pt solid #DA4167;
+}
+
+.body {
+    line-height: 1.5em;
+}
+
+.illustration {
+    position: relative;
+    width: 100%;
+    background-repeat: no-repeat;
+    z-index: 2;
+    align-self: flex-end;
+    margin-right: -30%;
+}
+
+.grid {
+    background-image: url('/grid.svg');
+    background-position: top right;
+    background-size: 25%;
+    width: 100%;
+    background-repeat: repeat;
+    z-index: -1;
+    align-self: flex-end;
+    padding-bottom: 75%;
+    position: absolute;
+    top: 24pt;
+    left: 24pt;
+}
+
+.lightSection {
+    background-color: white;
+    color: black;
+}
+
+.wave {
+    background-image: url('/wave.svg');
+    background-position: center bottom;
+    background-size: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    z-index: -1;
+    align-self: flex-end;
+    transform: rotateZ(180deg);
+    height: 100px;
+    margin-top: -24pt;
 }

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-25 0 522.5 274.39">
+    <defs>
+        <style>
+            .cls-1{fill:#232020;}
+            .cls-1,.cls-10,.cls-6,.cls-7,.cls-8{isolation:isolate;}
+            .cls-2{fill:#fff;}
+            .cls-3{fill:#C44766;}
+            .cls-4{fill:#14B58D;}
+            .cls-5{fill:#F7DC88;}
+            .cls-6,.cls-7,.cls-8{fill:#2f3e46;}
+            .cls-6{opacity:0.24;}
+            .cls-7{opacity:0.12;}
+            .cls-8{opacity:0.06;}
+            .cls-9{fill:none;stroke:#14B58D;stroke-linecap:round;stroke-miterlimit:10;stroke-width:3px;stroke-dasharray:6;}
+            .cls-10{opacity:0.12;}
+        </style>
+    </defs>
+    <g id="Layer_2" data-name="Layer 2">
+        <g id="Layer_1-2" data-name="Layer 1">
+            <g id="Group_1" data-name="Group 1">
+                <g id="Layer_1-3" data-name="Layer 1">
+                    <path id="Path_1" data-name="Path 1" class="cls-1" d="M82,21.11V8.44C82,4.22,86.21,0,90.43,0H512.56C516.78,0,521,4.22,521,8.44V21.11Z"/>
+                    <path id="Path_2" data-name="Path 2" class="cls-2" d="M521,21.11v207.6c0,3.46-4.22,7.69-8.44,7.69H90.43c-4.22,0-8.45-4.23-8.45-7.69V21.11Z"/>
+                    <circle id="Ellipse_1" data-name="Ellipse 1" class="cls-3" cx="92.54" cy="10.55" r="4.22"/>
+                    <circle id="Ellipse_2" data-name="Ellipse 2" class="cls-4" cx="107.31" cy="10.55" r="4.22"/>
+                    <circle id="Ellipse_3" data-name="Ellipse 3" class="cls-5" cx="122.09" cy="10.55" r="4.22"/>
+                </g>
+                <g id="Layer_2-2" data-name="Layer 2">
+                    <ellipse id="Ellipse_4" data-name="Ellipse 4" class="cls-6" cx="127.5" cy="66.39" rx="26.5" ry="26"/>
+                    <path id="Path_3" data-name="Path 3" class="cls-7" d="M168.29,46.43h112.1c4.22,0,8.44,4.23,8.44,8.45a8.71,8.71,0,0,1-8.44,8.44H168.29c-4.22,0-8.45-4.22-8.45-8.44A8.74,8.74,0,0,1,168.29,46.43Z"/>
+                    <path id="Path_4" data-name="Path 4" class="cls-8" d="M252.71,84.43H168.29c-4.22,0-8.45-4.23-8.45-8.45h0c0-4.22,4.22-8.44,8.45-8.44h84.42c4.22,0,8.45,4.22,8.45,8.44h0C261.15,80.2,256.93,84.43,252.71,84.43Z"/>
+                    <rect id="Rectangle_1" data-name="Rectangle 1" class="cls-10" x="101" y="103.39" width="188" height="58" rx="6"/>
+                    <rect id="Rectangle_2" data-name="Rectangle 2" class="cls-3" x="222" y="194.39" width="67" height="22" rx="6"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
