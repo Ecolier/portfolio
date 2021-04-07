@@ -1,17 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
 
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   font-size: 16px;
 }
 
 body {
-  background-color: #2958E6;
-  color: white;
+  background-color: white;
+  color: #333;
 }
 
 a {
@@ -21,4 +25,15 @@ a {
 
 * {
   box-sizing: border-box;
+}
+
+.content-container {
+  margin: 0 12pt;
+}
+
+@media screen and (min-width: 768px) {
+  .content-container {
+      width: 768px;
+      margin: 0 auto;
+  }
 }

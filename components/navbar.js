@@ -1,25 +1,15 @@
-import { useState } from 'react'
 import styles from '../styles/Navbar.module.css'
 
 export default function Navbar () {
-
-    const [menuToggled, setMenuToggled] = useState(false)
-
-    const toggleMenu = () => {
-        setMenuToggled(!menuToggled)
-    }
-
     return (
-        <div className={styles.navbar}>
+        <div className={`${styles.navbar} content-container`}>
             <div className={styles.navContainer}>
                 <div className={styles.navLeft}>
-                    <div className={styles.logo}></div>
-                    <div className={styles.brand}>
-                        <span>Hidavi</span>
-                    </div>
+                    <a href="/" className={styles.logo}></a>
+                    <span className={styles.brand}>Linotte</span>
                 </div>
                 <div className={styles.navRight}>
-                    <div className={styles.button}>Embauchez-nous !</div>
+                    <a href='/offers' className={styles.button}>Voir les offres</a>
                 </div>
             </div>
         </div>
