@@ -12,4 +12,10 @@ dist-ssr
 __unconfig*
 todos.json
 
+*.tsbuildinfo
+next-env.d.ts
+
 .direnv/
+data/
+
+private/

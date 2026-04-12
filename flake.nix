@@ -12,13 +12,14 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
       in
       {
         devShells = {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               nodejs_25
+              mongodb-ce
               pnpm
             ];
           };
