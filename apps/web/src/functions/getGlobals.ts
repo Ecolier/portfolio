@@ -16,11 +16,15 @@ export interface UIStrings {
 
 export interface HomePageData {
   headline: string;
+  metaTitle: string | null;
+  metaDescription: string | null;
 }
 
 export interface AboutPageData {
   heading: string;
   body: string;
+  metaTitle: string | null;
+  metaDescription: string | null;
 }
 
 export interface SiteSettingsData {
@@ -41,6 +45,8 @@ export const getHomePage = createServerFn()
     const data = await res.json();
     return {
       headline: data.headline,
+      metaTitle: data.metaTitle ?? null,
+      metaDescription: data.metaDescription ?? null,
     } as HomePageData;
   });
 
@@ -55,6 +61,8 @@ export const getAboutPage = createServerFn()
     return {
       heading: data.heading,
       body: data.body,
+      metaTitle: data.metaTitle ?? null,
+      metaDescription: data.metaDescription ?? null,
     } as AboutPageData;
   });
 

@@ -17,5 +17,21 @@ export const HomePage: GlobalConfig = {
       localized: true,
       defaultValue: 'Your Next Move? Me.',
     },
+    {
+      name: 'metaTitle',
+      type: 'text',
+      localized: true,
+      admin: {
+        description: 'Page title for SEO. Falls back to the site title.',
+      },
+    },
+    {
+      name: 'metaDescription',
+      type: 'textarea',
+      localized: true,
+      admin: {
+        description: 'Meta description for search engines.',
+      },
+    },
   ],
 }

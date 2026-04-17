@@ -1,22 +1,27 @@
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
-import { getProjects } from "../../functions/getProjects";
-import { getHomePage } from "../../functions/getGlobals";
-import type { Locale } from "../../functions/getGlobals";
-import { localePath, hreflangLinks } from "../../lib/locale";
-import ProjectCard from "../../components/ProjectCard";
-
-const localeRoute = getRouteApi("/{-$locale}");
+import { getProjects } from "@/functions/getProjects";
+import { getHomePage, getSiteSettings } from "@/functions/getGlobals";
+import type { Locale } from "@/functions/getGlobals";
+import {
+  localePath,
+  hreflangLinks,
+  SITE_URL,
+  ogLocale,
+  ogLocaleAlternates,
+} from "@/lib/locale";
+import ProjectCard from "@/components/ProjectCard";
 
 export const Route = createFileRoute("/{-$locale}/")({
   component: Home,
   loader: async ({ context }) => {
     const locale = (context as { locale: Locale }).locale;
-    const [projects, homePage] = await Promise.all([
+    const [projects, homePage, siteSettings] = await Promise.all([
       getProjects({ data: locale }),
       getHomePage({ data: locale }),
+      getSiteSettings({ data: locale }),
     ]);
-    return { projects, homePage };
+    return { projects, homePage, siteSettings };
   },
   headers: () => ({
     "Cache-Control":
@@ -24,42 +29,42 @@ export const Route = createFileRoute("/{-$locale}/")({
   }),
   staleTime: 60_000,
   gcTime: 5 * 60_000,
-  head: ({ params }) => {
+  head: ({ loaderData, params }) => {
+    if (!loaderData) return {};
     const locale = (params.locale ?? "en") as Locale;
     const canonical = localePath("/", locale);
+    const canonicalUrl = `${SITE_URL}${canonical}`;
+    const { homePage, siteSettings } = loaderData;
+    const title = homePage.metaTitle || siteSettings.siteTitle || "Evan Gruère";
+    const description =
+      homePage.metaDescription ||
+      siteSettings.siteDescription ||
+      "Portfolio of Evan Gruère, software engineer.";
     return {
       meta: [
-        { title: "Evan Gruère | Software Engineer — Projects & Work" },
-        {
-          name: "description",
-          content:
-            "Portfolio of Evan Gruère, a software engineer showcasing full-stack projects, open-source contributions, and technical expertise.",
-        },
-        { property: "og:title", content: "Evan Gruère | Software Engineer" },
-        {
-          property: "og:description",
-          content:
-            "Explore projects and work by Evan Gruère — full-stack software engineer.",
-        },
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
         { property: "og:type", content: "website" },
+        { property: "og:url", content: canonicalUrl },
+        { property: "og:site_name", content: "Evan Gruère" },
+        { property: "og:locale", content: ogLocale(locale) },
+        ...ogLocaleAlternates(locale).map((alt) => ({
+          property: "og:locale:alternate",
+          content: alt,
+        })),
         { name: "twitter:card", content: "summary" },
-        { name: "twitter:title", content: "Evan Gruère | Software Engineer" },
-        {
-          name: "twitter:description",
-          content: "Portfolio of Evan Gruère — full-stack software engineer.",
-        },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
       ],
-      links: [
-        { rel: "canonical", href: `https://gruere.dev${canonical}` },
-        ...hreflangLinks("/"),
-      ],
+      links: [{ rel: "canonical", href: canonicalUrl }, ...hreflangLinks("/")],
     };
   },
 });
 
 function Home() {
-  const { projects, homePage } = Route.useLoaderData();
-  const siteSettings = localeRoute.useLoaderData();
+  const { projects, homePage, siteSettings } = Route.useLoaderData();
   const { locale } = Route.useRouteContext() as { locale: Locale };
   const gridRef = useRef<HTMLDivElement>(null);
 

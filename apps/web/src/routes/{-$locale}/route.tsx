@@ -5,15 +5,15 @@ import {
   useLocation,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
-import Header from "../../components/Header";
-import { getSiteSettings } from "../../functions/getGlobals";
-import type { Locale } from "../../functions/getGlobals";
-import { detectPreferredLocale } from "../../functions/detectLocale";
+import Header from "@/components/Header";
+import { getSiteSettings } from "@/functions/getGlobals";
+import type { Locale } from "@/functions/getGlobals";
+import { detectPreferredLocale } from "@/functions/detectLocale";
 import {
   SUPPORTED_LOCALES,
   DEFAULT_LOCALE,
   stripLocalePrefix,
-} from "../../lib/locale";
+} from "@/lib/locale";
 
 export const Route = createFileRoute("/{-$locale}")({
   beforeLoad: async ({ params, location }) => {

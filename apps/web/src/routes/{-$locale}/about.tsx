@@ -1,18 +1,26 @@
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
-import FluidLink from "../../components/FluidLink";
-import { fluidState } from "../../components/TrippyPlane";
-import { getAboutPage } from "../../functions/getGlobals";
-import type { Locale } from "../../functions/getGlobals";
-import { localePath, hreflangLinks } from "../../lib/locale";
-
-const localeRoute = getRouteApi("/{-$locale}");
+import FluidLink from "@/components/FluidLink";
+import { fluidState } from "@/components/TrippyPlane";
+import { getAboutPage, getSiteSettings } from "@/functions/getGlobals";
+import type { Locale } from "@/functions/getGlobals";
+import {
+  localePath,
+  hreflangLinks,
+  SITE_URL,
+  ogLocale,
+  ogLocaleAlternates,
+} from "@/lib/locale";
 
 export const Route = createFileRoute("/{-$locale}/about")({
   component: About,
-  loader: ({ context }) => {
+  loader: async ({ context }) => {
     const locale = (context as { locale: Locale }).locale;
-    return getAboutPage({ data: locale });
+    const [aboutPage, siteSettings] = await Promise.all([
+      getAboutPage({ data: locale }),
+      getSiteSettings({ data: locale }),
+    ]);
+    return { aboutPage, siteSettings };
   },
   headers: () => ({
     "Cache-Control":
@@ -20,28 +28,39 @@ export const Route = createFileRoute("/{-$locale}/about")({
   }),
   staleTime: 60 * 60_000,
   gcTime: 24 * 60 * 60_000,
-  head: ({ params }) => {
+  head: ({ loaderData, params }) => {
+    if (!loaderData) return {};
     const locale = (params.locale ?? "en") as Locale;
     const canonical = localePath("/about", locale);
+    const canonicalUrl = `${SITE_URL}${canonical}`;
+    const { aboutPage, siteSettings } = loaderData;
+    const siteName = siteSettings.siteTitle || "Evan Gruère";
+    const title = aboutPage.metaTitle || `${aboutPage.heading} — ${siteName}`;
+    const description =
+      aboutPage.metaDescription ||
+      aboutPage.body?.slice(0, 160) ||
+      siteSettings.siteDescription ||
+      "";
     return {
       meta: [
-        { title: "About — Evan Gruère" },
-        {
-          name: "description",
-          content:
-            "Learn about Evan Gruère — software engineer, builder, and open-source enthusiast.",
-        },
-        { property: "og:title", content: "About — Evan Gruère" },
-        {
-          property: "og:description",
-          content: "Learn about Evan Gruère — software engineer.",
-        },
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
         { property: "og:type", content: "profile" },
+        { property: "og:url", content: canonicalUrl },
+        { property: "og:site_name", content: "Evan Gruère" },
+        { property: "og:locale", content: ogLocale(locale) },
+        ...ogLocaleAlternates(locale).map((alt) => ({
+          property: "og:locale:alternate",
+          content: alt,
+        })),
         { name: "twitter:card", content: "summary" },
-        { name: "twitter:title", content: "About — Evan Gruère" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
       ],
       links: [
-        { rel: "canonical", href: `https://gruere.dev${canonical}` },
+        { rel: "canonical", href: canonicalUrl },
         ...hreflangLinks("/about"),
       ],
     };
@@ -49,8 +68,7 @@ export const Route = createFileRoute("/{-$locale}/about")({
 });
 
 function About() {
-  const aboutPage = Route.useLoaderData();
-  const siteSettings = localeRoute.useLoaderData();
+  const { aboutPage, siteSettings } = Route.useLoaderData();
   const { locale } = Route.useRouteContext() as { locale: Locale };
 
   useEffect(() => {

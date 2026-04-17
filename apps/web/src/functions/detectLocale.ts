@@ -9,7 +9,7 @@ import {
   SUPPORTED_LOCALES,
   LOCALE_COOKIE,
   parseAcceptLanguage,
-} from "../lib/locale";
+} from "@/lib/locale";
 
 /**
  * Server-side locale detection.

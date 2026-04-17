@@ -1,13 +1,13 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "@tanstack/react-router";
-import { animateThemeTransition } from "../lib/themeTransition";
-import type { UIStrings, Locale } from "../functions/getGlobals";
+import { animateThemeTransition } from "@/lib/themeTransition";
+import type { UIStrings, Locale } from "@/functions/getGlobals";
 import {
   DEFAULT_LOCALE,
   LOCALE_COOKIE,
   localePath,
   stripLocalePrefix,
-} from "../lib/locale";
+} from "@/lib/locale";
 import FluidLink from "./FluidLink";
 
 function getSnapshot() {

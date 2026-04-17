@@ -1,8 +1,8 @@
 import type { CSSProperties, MouseEvent } from "react";
-import type { Project } from "../functions/getProjects";
-import type { Locale } from "../functions/getGlobals";
-import { localePath } from "../lib/locale";
-import { useFluidTransition } from "../hooks/useFluidTransition";
+import type { Project } from "@/functions/getProjects";
+import type { Locale } from "@/functions/getGlobals";
+import { localePath } from "@/lib/locale";
+import { useFluidTransition } from "@/hooks/useFluidTransition";
 import { fluidState } from "./TrippyPlane";
 
 // Maps phase index (0=A, 1=B, 2=C) to a CSS background variable

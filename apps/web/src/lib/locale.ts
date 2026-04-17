@@ -3,7 +3,24 @@ import type { Locale } from "../functions/getGlobals";
 export const SUPPORTED_LOCALES: Locale[] = ["en", "fr"];
 export const DEFAULT_LOCALE: Locale = "en";
 export const LOCALE_COOKIE = "locale";
-const SITE_URL = "https://gruere.dev";
+export const SITE_URL = "https://gruere.dev";
+
+const OG_LOCALE_MAP: Record<Locale, string> = {
+  en: "en_US",
+  fr: "fr_FR",
+};
+
+/** Return the og:locale value for a given locale. */
+export function ogLocale(locale: Locale): string {
+  return OG_LOCALE_MAP[locale] ?? "en_US";
+}
+
+/** Return og:locale:alternate values (all supported locales except current). */
+export function ogLocaleAlternates(locale: Locale): string[] {
+  return SUPPORTED_LOCALES.filter((l) => l !== locale).map(
+    (l) => OG_LOCALE_MAP[l],
+  );
+}
 
 export function resolveLocale(param: string | undefined): Locale {
   if (param && SUPPORTED_LOCALES.includes(param as Locale)) {

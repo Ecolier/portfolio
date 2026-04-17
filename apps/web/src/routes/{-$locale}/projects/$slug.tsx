@@ -1,10 +1,15 @@
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { getProject } from "../../../functions/getProjects";
-import type { Locale } from "../../../functions/getGlobals";
-import { localePath, hreflangLinks } from "../../../lib/locale";
-import FluidLink from "../../../components/FluidLink";
-import { fluidState } from "../../../components/TrippyPlane";
+import { getProject } from "@/functions/getProjects";
+import type { Locale } from "@/functions/getGlobals";
+import {
+  localePath,
+  hreflangLinks,
+  SITE_URL,
+  ogLocale,
+  ogLocaleAlternates,
+} from "@/lib/locale";
+import { fluidState } from "@/components/TrippyPlane";
 
 const localeRoute = getRouteApi("/{-$locale}");
 
@@ -35,6 +40,7 @@ export const Route = createFileRoute("/{-$locale}/projects/$slug")({
     const slug = params.slug;
     const basePath = `/projects/${slug}`;
     const canonical = localePath(basePath, locale);
+    const canonicalUrl = `${SITE_URL}${canonical}`;
     const title = `${loaderData.name}${loaderData.company ? ` — ${loaderData.company}` : ""} | Evan Gruère`;
     const description =
       loaderData.excerpt ||
@@ -47,6 +53,13 @@ export const Route = createFileRoute("/{-$locale}/projects/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
+        { property: "og:url", content: canonicalUrl },
+        { property: "og:site_name", content: "Evan Gruère" },
+        { property: "og:locale", content: ogLocale(locale) },
+        ...ogLocaleAlternates(locale).map((alt) => ({
+          property: "og:locale:alternate",
+          content: alt,
+        })),
         ...(loaderData.coverImage
           ? [
               { property: "og:image", content: loaderData.coverImage.url },
@@ -73,7 +86,7 @@ export const Route = createFileRoute("/{-$locale}/projects/$slug")({
         },
       ],
       links: [
-        { rel: "canonical", href: `https://gruere.dev${canonical}` },
+        { rel: "canonical", href: canonicalUrl },
         ...hreflangLinks(basePath),
       ],
       scripts: [
