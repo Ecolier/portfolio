@@ -1,23 +1,27 @@
 import type { CSSProperties, MouseEvent } from "react";
 import type { Project } from "../functions/getProjects";
+import type { Locale } from "../functions/getGlobals";
+import { localePath } from "../lib/locale";
 import { useFluidTransition } from "../hooks/useFluidTransition";
 import { fluidState } from "./TrippyPlane";
 
-// Maps phase index (0=A, 1=B, 2=C) to a CSS accent color
-const PHASE_ACCENTS = [
-  "var(--phase-a, rgba(220,180,180,0.5))",
-  "var(--phase-b, rgba(180,200,220,0.5))",
-  "var(--phase-c, rgba(200,220,200,0.5))",
+// Maps phase index (0=A, 1=B, 2=C) to a CSS background variable
+const PHASE_BG = [
+  "var(--phase-a-bg)",
+  "var(--phase-b-bg)",
+  "var(--phase-c-bg)",
 ];
 
 export default function ProjectCard({
   project,
   phase,
   style,
+  locale,
 }: {
   project: Project;
   phase: number;
   style?: CSSProperties;
+  locale: Locale;
 }) {
   const navigateWithTransition = useFluidTransition();
 
@@ -25,7 +29,10 @@ export default function ProjectCard({
     // Don't intercept clicks on external links
     if ((e.target as HTMLElement).closest("a")) return;
     e.preventDefault();
-    navigateWithTransition(`/projects/${project.slug}?phase=${phase}`, phase);
+    navigateWithTransition(
+      localePath(`/projects/${project.slug}?phase=${phase}`, locale),
+      phase,
+    );
   }
 
   function handleMouseEnter(e: MouseEvent) {
@@ -51,8 +58,7 @@ export default function ProjectCard({
       className="feature-card cursor-pointer rounded-2xl border border-(--line) p-5 opacity-0 backdrop-blur-sm sm:p-6"
       style={{
         ...style,
-        borderLeftWidth: 3,
-        borderLeftColor: PHASE_ACCENTS[phase % 3],
+        backgroundColor: PHASE_BG[phase % 3],
       }}
     >
       {project.company && (

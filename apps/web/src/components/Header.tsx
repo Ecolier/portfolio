@@ -1,4 +1,13 @@
 import { useCallback, useSyncExternalStore } from "react";
+import { useRouter } from "@tanstack/react-router";
+import { animateThemeTransition } from "../lib/themeTransition";
+import type { UIStrings, Locale } from "../functions/getGlobals";
+import {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE,
+  localePath,
+  stripLocalePrefix,
+} from "../lib/locale";
 import FluidLink from "./FluidLink";
 
 function getSnapshot() {
@@ -21,14 +30,25 @@ function subscribe(cb: () => void) {
 interface HeaderProps {
   contactEmail: string | null;
   githubUrl: string | null;
+  ui: UIStrings;
+  locale: Locale;
+  pathname: string;
 }
 
-export default function Header({ contactEmail, githubUrl }: HeaderProps) {
+export default function Header({
+  contactEmail,
+  githubUrl,
+  ui,
+  locale,
+  pathname,
+}: HeaderProps) {
   const resolved = useSyncExternalStore(
     subscribe,
     getSnapshot,
     getServerSnapshot,
   );
+
+  const router = useRouter();
 
   const toggleTheme = useCallback(() => {
     const next = resolved === "dark" ? "light" : "dark";
@@ -38,28 +58,40 @@ export default function Header({ contactEmail, githubUrl }: HeaderProps) {
     root.setAttribute("data-theme", next);
     root.style.colorScheme = next;
     localStorage.setItem("theme", next);
+    animateThemeTransition(next);
   }, [resolved]);
 
+  // Build the language switcher href by flipping the locale prefix
+  const targetLocale: Locale = locale === DEFAULT_LOCALE ? "fr" : "en";
+  const basePath = stripLocalePrefix(pathname);
+  const switchHref = localePath(basePath, targetLocale);
+
+  function handleLangSwitch(e: React.MouseEvent) {
+    e.preventDefault();
+    document.cookie = `${LOCALE_COOKIE}=${targetLocale}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax`;
+    router.navigate({ href: switchHref, resetScroll: false });
+  }
+
   return (
-    <header className="sticky top-0 z-50 bg-transparent px-4 pt-[env(safe-area-inset-top)]">
+    <header className="sticky top-0 z-50 bg-(--header-bg) px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md">
       <nav className="page-wrap flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:py-4">
         <h2 className="m-0 shrink-0 text-base font-semibold tracking-tight">
           {contactEmail && (
             <a
               href={`mailto:${contactEmail}`}
-              className="inline-flex items-center gap-2 rounded-full border border-(--chip-line) bg-(--chip-bg) px-3 py-1.5 text-sm text-(--sea-ink) no-underline shadow-[0_8px_24px_rgba(30,90,72,0.08)] sm:px-4 sm:py-2"
+              className="inline-flex items-center gap-2 rounded-full border border-(--chip-line) bg-(--chip-bg) px-3 py-1.5 text-sm text-(--sea-ink) no-underline shadow-[0_8px_24px_rgba(30,50,72,0.08)] sm:px-4 sm:py-2"
             >
-              Get in Touch
+              {ui.ctaContact}
             </a>
           )}
         </h2>
 
         <div className="ml-auto flex items-center gap-1.5 sm:ml-0 sm:gap-2">
           <FluidLink
-            to="/about"
+            to={localePath("/about", locale)}
             className="rounded-xl px-3 py-2 text-sm text-(--sea-ink-soft) no-underline transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
           >
-            About
+            {ui.navAbout}
           </FluidLink>
           <button
             type="button"
@@ -115,6 +147,14 @@ export default function Header({ contactEmail, githubUrl }: HeaderProps) {
             </a>
           )}
         </div>
+
+        <a
+          href={switchHref}
+          onClick={handleLangSwitch}
+          className="ml-auto rounded-xl px-2 py-1.5 text-xs font-semibold uppercase text-(--sea-ink-soft) no-underline transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
+        >
+          {locale === "en" ? "FR" : "EN"}
+        </a>
       </nav>
     </header>
   );

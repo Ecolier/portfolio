@@ -14,6 +14,7 @@ export const Project: CollectionConfig = {
       name: 'Name',
       type: 'text',
       required: true,
+      localized: true,
     },
     {
       name: 'Slug',
@@ -28,6 +29,7 @@ export const Project: CollectionConfig = {
       name: 'Excerpt',
       type: 'textarea',
       maxLength: 160,
+      localized: true,
       admin: {
         description: 'Short summary (≤ 160 chars) used for meta descriptions and social cards.',
       },
@@ -62,6 +64,7 @@ export const Project: CollectionConfig = {
       name: 'Description',
       type: 'richText',
       required: true,
+      localized: true,
     },
   ],
 }

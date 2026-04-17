@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { Locale } from "./getGlobals";
 
 const CMS_URL = "http://localhost:3001";
 
@@ -88,19 +89,23 @@ function mapProject(doc: ProjectDoc, joinSep: string): Project {
   };
 }
 
-export const getProjects = createServerFn().handler(async () => {
-  const res = await fetch(`${CMS_URL}/api/project?depth=1&limit=20`);
-  if (!res.ok) throw new Error(`CMS responded ${res.status}`);
-  const data = await res.json();
+export const getProjects = createServerFn()
+  .inputValidator((locale: Locale) => locale)
+  .handler(async ({ data: locale }) => {
+    const res = await fetch(
+      `${CMS_URL}/api/project?depth=1&limit=20&locale=${locale}`,
+    );
+    if (!res.ok) throw new Error(`CMS responded ${res.status}`);
+    const data = await res.json();
 
-  return (data.docs as ProjectDoc[]).map((doc) => mapProject(doc, " "));
-});
+    return (data.docs as ProjectDoc[]).map((doc) => mapProject(doc, " "));
+  });
 
 export const getProject = createServerFn()
-  .inputValidator((slug: string) => slug)
-  .handler(async ({ data: slug }) => {
+  .inputValidator((input: { slug: string; locale: Locale }) => input)
+  .handler(async ({ data: { slug, locale } }) => {
     const res = await fetch(
-      `${CMS_URL}/api/project?where[Slug][equals]=${encodeURIComponent(slug)}&depth=1&limit=1`,
+      `${CMS_URL}/api/project?where[Slug][equals]=${encodeURIComponent(slug)}&depth=1&limit=1&locale=${locale}`,
     );
     if (!res.ok) throw new Error(`CMS responded ${res.status}`);
     const data = await res.json();

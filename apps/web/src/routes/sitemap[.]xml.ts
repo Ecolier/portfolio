@@ -2,6 +2,30 @@ import { createFileRoute } from "@tanstack/react-router";
 
 const SITE_URL = "https://gruere.dev";
 
+function urlEntry(
+  path: string,
+  opts: { changefreq: string; priority: number; lastmod?: string },
+) {
+  const en = `${SITE_URL}${path}`;
+  const fr = `${SITE_URL}/fr${path}`;
+  return `<url>
+    <loc>${en}</loc>${opts.lastmod ? `\n    <lastmod>${opts.lastmod}</lastmod>` : ""}
+    <changefreq>${opts.changefreq}</changefreq>
+    <priority>${opts.priority}</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="${en}"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${fr}"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${en}"/>
+  </url>
+  <url>
+    <loc>${fr}</loc>${opts.lastmod ? `\n    <lastmod>${opts.lastmod}</lastmod>` : ""}
+    <changefreq>${opts.changefreq}</changefreq>
+    <priority>${opts.priority}</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="${en}"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${fr}"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${en}"/>
+  </url>`;
+}
+
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
@@ -12,29 +36,19 @@ export const Route = createFileRoute("/sitemap.xml")({
         const data = res.ok ? await res.json() : { docs: [] };
 
         const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${SITE_URL}/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>${SITE_URL}/about</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  ${urlEntry("/", { changefreq: "weekly", priority: 1.0 })}
+  ${urlEntry("/about", { changefreq: "monthly", priority: 0.6 })}
   ${(data.docs as Array<{ id: string; Slug?: string; updatedAt?: string }>)
-    .map(
-      (doc) => `<url>
-    <loc>${SITE_URL}/projects/${doc.Slug || doc.id}</loc>${
-      doc.updatedAt
-        ? `
-    <lastmod>${new Date(doc.updatedAt).toISOString().split("T")[0]}</lastmod>`
-        : ""
-    }
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`,
+    .map((doc) =>
+      urlEntry(`/projects/${doc.Slug || doc.id}`, {
+        changefreq: "weekly",
+        priority: 0.8,
+        lastmod: doc.updatedAt
+          ? new Date(doc.updatedAt).toISOString().split("T")[0]
+          : undefined,
+      }),
     )
     .join("\n  ")}
 </urlset>`;

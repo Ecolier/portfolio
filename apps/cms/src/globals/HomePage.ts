@@ -14,6 +14,7 @@ export const HomePage: GlobalConfig = {
       name: 'headline',
       type: 'text',
       required: true,
+      localized: true,
       defaultValue: 'Your Next Move? Me.',
     },
   ],

@@ -90,7 +90,7 @@ export interface Config {
   db: {
     defaultIDType: string;
   };
-  fallbackLocale: null;
+  fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'fr') | ('en' | 'fr')[];
   globals: {
     'home-page': HomePage;
     'about-page': AboutPage;
@@ -101,7 +101,7 @@ export interface Config {
     'about-page': AboutPageSelect<false> | AboutPageSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
   };
-  locale: null;
+  locale: 'en' | 'fr';
   widgets: {
     collections: CollectionsWidget;
   };
@@ -440,11 +440,27 @@ export interface AboutPage {
 export interface SiteSetting {
   id: string;
   siteTitle: string;
+  /**
+   * Default meta description for the site.
+   */
+  siteDescription?: string | null;
   contactEmail?: string | null;
   /**
    * Full URL to your GitHub profile.
    */
   githubUrl?: string | null;
+  /**
+   * Translatable labels for navigation and buttons.
+   */
+  ui?: {
+    navAbout?: string | null;
+    navProjects?: string | null;
+    ctaContact?: string | null;
+    ctaViewProjects?: string | null;
+    ctaBackToProjects?: string | null;
+    ctaSource?: string | null;
+    ctaWebsite?: string | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -475,8 +491,20 @@ export interface AboutPageSelect<T extends boolean = true> {
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
   siteTitle?: T;
+  siteDescription?: T;
   contactEmail?: T;
   githubUrl?: T;
+  ui?:
+    | T
+    | {
+        navAbout?: T;
+        navProjects?: T;
+        ctaContact?: T;
+        ctaViewProjects?: T;
+        ctaBackToProjects?: T;
+        ctaSource?: T;
+        ctaWebsite?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

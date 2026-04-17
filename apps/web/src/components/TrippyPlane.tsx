@@ -162,7 +162,7 @@ export default function TrippyPlane() {
       );
 
       // Smoothly lerp colors toward target palette
-      const lerpFactor = 1 - Math.exp(-2.5 * delta);
+      const lerpFactor = 1 - Math.exp(-6 * delta);
       const u = materialRef.current.uniforms;
       const tp = targetPalette.current;
       u.u_colA.value.lerp(tp.a, lerpFactor);

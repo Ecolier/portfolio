@@ -1,44 +1,57 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useEffect } from "react";
-import FluidLink from "../components/FluidLink";
-import { fluidState } from "../components/TrippyPlane";
-import { getAboutPage } from "../functions/getGlobals";
+import FluidLink from "../../components/FluidLink";
+import { fluidState } from "../../components/TrippyPlane";
+import { getAboutPage } from "../../functions/getGlobals";
+import type { Locale } from "../../functions/getGlobals";
+import { localePath, hreflangLinks } from "../../lib/locale";
 
-const rootRoute = getRouteApi("__root__");
+const localeRoute = getRouteApi("/{-$locale}");
 
-export const Route = createFileRoute("/about")({
+export const Route = createFileRoute("/{-$locale}/about")({
   component: About,
-  loader: () => getAboutPage(),
+  loader: ({ context }) => {
+    const locale = (context as { locale: Locale }).locale;
+    return getAboutPage({ data: locale });
+  },
   headers: () => ({
     "Cache-Control":
       "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
   }),
   staleTime: 60 * 60_000,
   gcTime: 24 * 60 * 60_000,
-  head: () => ({
-    meta: [
-      { title: "About — Evan Gruère" },
-      {
-        name: "description",
-        content:
-          "Learn about Evan Gruère — software engineer, builder, and open-source enthusiast.",
-      },
-      { property: "og:title", content: "About — Evan Gruère" },
-      {
-        property: "og:description",
-        content: "Learn about Evan Gruère — software engineer.",
-      },
-      { property: "og:type", content: "profile" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "About — Evan Gruère" },
-    ],
-    links: [{ rel: "canonical", href: "https://gruere.dev/about" }],
-  }),
+  head: ({ params }) => {
+    const locale = (params.locale ?? "en") as Locale;
+    const canonical = localePath("/about", locale);
+    return {
+      meta: [
+        { title: "About — Evan Gruère" },
+        {
+          name: "description",
+          content:
+            "Learn about Evan Gruère — software engineer, builder, and open-source enthusiast.",
+        },
+        { property: "og:title", content: "About — Evan Gruère" },
+        {
+          property: "og:description",
+          content: "Learn about Evan Gruère — software engineer.",
+        },
+        { property: "og:type", content: "profile" },
+        { name: "twitter:card", content: "summary" },
+        { name: "twitter:title", content: "About — Evan Gruère" },
+      ],
+      links: [
+        { rel: "canonical", href: `https://gruere.dev${canonical}` },
+        ...hreflangLinks("/about"),
+      ],
+    };
+  },
 });
 
 function About() {
   const aboutPage = Route.useLoaderData();
-  const siteSettings = rootRoute.useLoaderData();
+  const siteSettings = localeRoute.useLoaderData();
+  const { locale } = Route.useRouteContext() as { locale: Locale };
 
   useEffect(() => {
     fluidState.targetScale = 0.6;
@@ -59,10 +72,10 @@ function About() {
         </p>
         <div className="mt-6 flex items-center gap-3">
           <FluidLink
-            to="/"
+            to={localePath("/", locale)}
             className="fluid-cta inline-flex items-center gap-2 rounded-full border border-(--chip-line) px-4 py-2 text-sm text-(--sea-ink) no-underline transition hover:bg-(--link-bg-hover)"
           >
-            View Projects
+            {siteSettings.ui.ctaViewProjects}
           </FluidLink>
           {siteSettings.githubUrl && (
             <a

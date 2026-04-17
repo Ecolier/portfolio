@@ -14,11 +14,13 @@ export const AboutPage: GlobalConfig = {
       name: 'heading',
       type: 'text',
       required: true,
+      localized: true,
     },
     {
       name: 'body',
       type: 'textarea',
       required: true,
+      localized: true,
     },
   ],
 }
