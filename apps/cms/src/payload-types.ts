@@ -419,6 +419,18 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface HomePage {
   id: string;
   headline: string;
+  /**
+   * One-liner shown below the headline.
+   */
+  subtitle?: string | null;
+  /**
+   * Page title for SEO. Falls back to the site title.
+   */
+  metaTitle?: string | null;
+  /**
+   * Meta description for search engines.
+   */
+  metaDescription?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -430,6 +442,14 @@ export interface AboutPage {
   id: string;
   heading: string;
   body: string;
+  /**
+   * Page title for SEO. Falls back to "heading — site title".
+   */
+  metaTitle?: string | null;
+  /**
+   * Meta description for search engines. Falls back to body excerpt.
+   */
+  metaDescription?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -470,6 +490,9 @@ export interface SiteSetting {
  */
 export interface HomePageSelect<T extends boolean = true> {
   headline?: T;
+  subtitle?: T;
+  metaTitle?: T;
+  metaDescription?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -481,6 +504,8 @@ export interface HomePageSelect<T extends boolean = true> {
 export interface AboutPageSelect<T extends boolean = true> {
   heading?: T;
   body?: T;
+  metaTitle?: T;
+  metaDescription?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

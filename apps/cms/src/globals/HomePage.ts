@@ -18,6 +18,14 @@ export const HomePage: GlobalConfig = {
       defaultValue: 'Your Next Move? Me.',
     },
     {
+      name: 'subtitle',
+      type: 'text',
+      localized: true,
+      admin: {
+        description: 'One-liner shown below the headline.',
+      },
+    },
+    {
       name: 'metaTitle',
       type: 'text',
       localized: true,

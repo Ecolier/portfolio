@@ -1,65 +1,20 @@
 import { useRef, useMemo, useEffect } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 const TIME_ORIGIN = typeof performance !== "undefined" ? performance.now() : 0;
 
+// Duotone palettes: background + line color
 const PALETTES = {
   light: {
-    a: new THREE.Color(0.85, 0.88, 0.93),
-    b: new THREE.Color(0.9, 0.93, 0.96),
-    c: new THREE.Color(0.94, 0.96, 0.98),
+    bg: new THREE.Color(0.91, 0.929, 0.953),
+    line: new THREE.Color(0.118, 0.176, 0.239),
   },
   dark: {
-    a: new THREE.Color(0.12, 0.16, 0.22),
-    b: new THREE.Color(0.08, 0.12, 0.18),
-    c: new THREE.Color(0.05, 0.08, 0.12),
+    bg: new THREE.Color(0.043, 0.067, 0.094),
+    line: new THREE.Color(0.816, 0.863, 0.902),
   },
 };
-
-function mod289(x: number) {
-  return x - Math.floor(x / 289) * 289;
-}
-function permute(x: number) {
-  return mod289((34 * x + 1) * x);
-}
-function snoise2d(x: number, y: number): number {
-  const F2 = 0.3660254037844386; // 0.5 * (Math.sqrt(3) - 1)
-  const G2 = 0.21132486540518713; // (3 - Math.sqrt(3)) / 6
-  const s = (x + y) * F2;
-  const i = Math.floor(x + s);
-  const j = Math.floor(y + s);
-  const t = (i + j) * G2;
-  const x0 = x - i + t;
-  const y0 = y - j + t;
-  const i1 = x0 > y0 ? 1 : 0;
-  const j1 = x0 > y0 ? 0 : 1;
-  const x1 = x0 - i1 + G2;
-  const y1 = y0 - j1 + G2;
-  const x2 = x0 - 1 + 2 * G2;
-  const y2 = y0 - 1 + 2 * G2;
-  const ii = mod289(i);
-  const jj = mod289(j);
-  const gi0 = permute(permute(jj) + ii);
-  const gi1 = permute(permute(jj + j1) + ii + i1);
-  const gi2 = permute(permute(jj + 1) + ii + 1);
-  const gx0 = 2 * ((gi0 / 41) % 1) - 1;
-  const gy0 = Math.abs(gx0) - 0.5;
-  const gx0c = gx0 - Math.floor(gx0 + 0.5);
-  const gx1 = 2 * ((gi1 / 41) % 1) - 1;
-  const gy1 = Math.abs(gx1) - 0.5;
-  const gx1c = gx1 - Math.floor(gx1 + 0.5);
-  const gx2 = 2 * ((gi2 / 41) % 1) - 1;
-  const gy2 = Math.abs(gx2) - 0.5;
-  const gx2c = gx2 - Math.floor(gx2 + 0.5);
-  let t0 = 0.5 - x0 * x0 - y0 * y0;
-  let n0 = t0 < 0 ? 0 : ((t0 *= t0), t0 * t0 * (gx0c * x0 + gy0 * y0));
-  let t1 = 0.5 - x1 * x1 - y1 * y1;
-  let n1 = t1 < 0 ? 0 : ((t1 *= t1), t1 * t1 * (gx1c * x1 + gy1 * y1));
-  let t2 = 0.5 - x2 * x2 - y2 * y2;
-  let n2 = t2 < 0 ? 0 : ((t2 *= t2), t2 * t2 * (gx2c * x2 + gy2 * y2));
-  return 130 * (n0 + n1 + n2);
-}
 
 function getResolvedTheme(): "light" | "dark" {
   if (typeof document === "undefined") return "light";
@@ -71,10 +26,13 @@ export const shaderMaterialRef = {
   current: null as THREE.ShaderMaterial | null,
 };
 
-// Reusable vector to avoid per-frame allocation
-const _hoverTarget = new THREE.Vector2();
+// Module-level state: obstacle rectangles in UV coords (0-1, bottom-left origin)
+export const windState = {
+  obstacles: [] as Array<{ x: number; y: number; w: number; h: number }>,
+};
 
-// Module-level reactive state — external code writes, useFrame reads
+// Keep fluidState export for backward compat (about, project detail pages)
+// Writes to it are harmless no-ops — the wind shader ignores these values
 export const fluidState = {
   hoveredPhase: -1,
   hoveredX: 0,
@@ -86,56 +44,44 @@ export default function TrippyPlane() {
   const materialRef = useRef<THREE.ShaderMaterial>(null!);
   const targetPalette = useRef(PALETTES[getResolvedTheme()]);
   const scrollRef = useRef(0);
-  const hoverStrengths = useRef([0, 0, 0]);
-  const hoverTargets = useRef([
-    { x: 0, y: 0 },
-    { x: 0, y: 0 },
-    { x: 0, y: 0 },
-  ]);
 
-  // Stable uniforms object — never recreated on re-render
-  const uniforms = useMemo(
-    () => ({
+  const uniforms = useMemo(() => {
+    const initial = PALETTES[getResolvedTheme()];
+    return {
       u_time: { value: 0 },
       u_res: { value: new THREE.Vector2(1, 1) },
-      u_colA: { value: PALETTES.light.a.clone() },
-      u_colB: { value: PALETTES.light.b.clone() },
-      u_colC: { value: PALETTES.light.c.clone() },
+      u_bgColor: { value: initial.bg.clone() },
+      u_lineColor: { value: initial.line.clone() },
+      u_obs1: { value: new THREE.Vector4(0, 0, 0, 0) },
+      u_obs2: { value: new THREE.Vector4(0, 0, 0, 0) },
+      u_obs3: { value: new THREE.Vector4(0, 0, 0, 0) },
+      u_obs4: { value: new THREE.Vector4(0, 0, 0, 0) },
+      u_obsCount: { value: 0 },
       u_transition: { value: 0.0 },
-      u_transitionPhase: { value: 2.0 },
-      u_scale: { value: 1.0 },
-      u_cA1: { value: new THREE.Vector2() },
-      u_cA2: { value: new THREE.Vector2() },
-      u_cB1: { value: new THREE.Vector2() },
-      u_cB2: { value: new THREE.Vector2() },
-      u_cC1: { value: new THREE.Vector2() },
-      u_cC2: { value: new THREE.Vector2() },
+      u_transitionPhase: { value: 0.0 },
       u_scrollY: { value: 0.0 },
-    }),
-    [],
-  );
+    };
+  }, []);
 
+  // Theme observer
   useEffect(() => {
     function updateTarget() {
       targetPalette.current = PALETTES[getResolvedTheme()];
     }
-
     updateTarget();
-
     const observer = new MutationObserver(updateTarget);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class"],
     });
-
     shaderMaterialRef.current = materialRef.current;
-
     return () => {
       observer.disconnect();
       shaderMaterialRef.current = null;
     };
   }, []);
 
+  // Scroll listener
   useEffect(() => {
     function onScroll() {
       const maxScroll =
@@ -144,91 +90,32 @@ export default function TrippyPlane() {
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useFrame(({ gl }, delta) => {
-    if (materialRef.current) {
-      const elapsed = (performance.now() - TIME_ORIGIN) / 1000;
-      const t = elapsed * 0.1;
-      const gravY = -t * 0.4;
+    if (!materialRef.current) return;
+    const u = materialRef.current.uniforms;
+    const elapsed = (performance.now() - TIME_ORIGIN) / 1000;
 
-      materialRef.current.uniforms.u_time.value = elapsed;
-      materialRef.current.uniforms.u_res.value.set(
-        gl.domElement.width,
-        gl.domElement.height,
-      );
+    u.u_time.value = elapsed;
+    u.u_res.value.set(gl.domElement.width, gl.domElement.height);
+    u.u_scrollY.value = scrollRef.current;
 
-      // Smoothly lerp colors toward target palette
-      const lerpFactor = 1 - Math.exp(-6 * delta);
-      const u = materialRef.current.uniforms;
-      const tp = targetPalette.current;
-      u.u_colA.value.lerp(tp.a, lerpFactor);
-      u.u_colB.value.lerp(tp.b, lerpFactor);
-      u.u_colC.value.lerp(tp.c, lerpFactor);
+    // Lerp colors toward target palette
+    const lf = 1 - Math.exp(-6 * delta);
+    u.u_bgColor.value.lerp(targetPalette.current.bg, lf);
+    u.u_lineColor.value.lerp(targetPalette.current.line, lf);
 
-      // Update scroll and scale
-      u.u_scrollY.value = scrollRef.current;
-      u.u_scale.value +=
-        (fluidState.targetScale - u.u_scale.value) * (1 - Math.exp(-2 * delta));
-
-      u.u_cA1.value.set(
-        snoise2d(t * 0.12, 1.3) * 0.6,
-        snoise2d(t * 0.1, 4.7) * 0.4 + gravY * 0.3,
-      );
-      u.u_cA2.value.set(
-        snoise2d(t * 0.09, 7.1) * 0.5,
-        snoise2d(t * 0.11, 2.9) * 0.35 + gravY * 0.25,
-      );
-      u.u_cB1.value.set(
-        snoise2d(t * 0.08, 3.6) * 0.55,
-        snoise2d(t * 0.07, 8.2) * 0.45 + gravY * 0.15,
-      );
-      u.u_cB2.value.set(
-        snoise2d(t * 0.1, 5.8) * 0.5,
-        snoise2d(t * 0.06, 6.4) * 0.3 + gravY * 0.1,
-      );
-      u.u_cC1.value.set(
-        snoise2d(t * 0.11, 9.3) * 0.5,
-        snoise2d(t * 0.09, 0.7) * 0.4 + gravY * 0.2,
-      );
-      u.u_cC2.value.set(
-        snoise2d(t * 0.07, 2.1) * 0.6,
-        snoise2d(t * 0.12, 5.1) * 0.35 + gravY * 0.22,
-      );
-
-      // Hover-driven phase affinity: per-phase strengths fade independently
-      const activePhase =
-        fluidState.hoveredPhase >= 0 ? fluidState.hoveredPhase % 3 : -1;
-      const posLerp = 1 - Math.exp(-6 * delta);
-      const fadeIn = 1 - Math.exp(-4 * delta);
-      const fadeOut = 1 - Math.exp(-3 * delta);
-
-      for (let i = 0; i < 3; i++) {
-        const isActive = i === activePhase;
-        const goal = isActive ? 1 : 0;
-        const rate = isActive ? fadeIn : fadeOut;
-        hoverStrengths.current[i] += (goal - hoverStrengths.current[i]) * rate;
-
-        if (isActive) {
-          hoverTargets.current[i].x +=
-            (fluidState.hoveredX - hoverTargets.current[i].x) * posLerp;
-          hoverTargets.current[i].y +=
-            (fluidState.hoveredY - hoverTargets.current[i].y) * posLerp;
-        }
-
-        if (hoverStrengths.current[i] > 0.01) {
-          _hoverTarget.set(
-            hoverTargets.current[i].x,
-            hoverTargets.current[i].y,
-          );
-          const strength = hoverStrengths.current[i] * 0.4;
-          if (i === 0) u.u_cA1.value.lerp(_hoverTarget, strength);
-          else if (i === 1) u.u_cB1.value.lerp(_hoverTarget, strength);
-          else u.u_cC1.value.lerp(_hoverTarget, strength);
-        }
+    // Sync obstacle uniforms from windState
+    const obs = windState.obstacles;
+    u.u_obsCount.value = Math.min(obs.length, 4);
+    const targets = [u.u_obs1, u.u_obs2, u.u_obs3, u.u_obs4];
+    for (let i = 0; i < 4; i++) {
+      if (i < obs.length) {
+        targets[i].value.set(obs[i].x, obs[i].y, obs[i].w, obs[i].h);
+      } else {
+        targets[i].value.set(0, 0, 0, 0);
       }
     }
   });
@@ -245,154 +132,234 @@ export default function TrippyPlane() {
           }
         `}
         fragmentShader={`
+          precision highp float;
+
           uniform float u_time;
-          uniform vec2 u_res;
-          uniform vec3 u_colA;
-          uniform vec3 u_colB;
-          uniform vec3 u_colC;
+          uniform vec2  u_res;
+          uniform vec3  u_bgColor;
+          uniform vec3  u_lineColor;
+          uniform vec4  u_obs1;
+          uniform vec4  u_obs2;
+          uniform vec4  u_obs3;
+          uniform vec4  u_obs4;
+          uniform int   u_obsCount;
           uniform float u_transition;
-          uniform float u_transitionPhase;
-          uniform float u_scale;
-          uniform vec2 u_cA1;
-          uniform vec2 u_cA2;
-          uniform vec2 u_cB1;
-          uniform vec2 u_cB2;
-          uniform vec2 u_cC1;
-          uniform vec2 u_cC2;
           uniform float u_scrollY;
 
-          // — simplex 2D noise (Ashima Arts) —
-          vec3 mod289(vec3 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
-          vec2 mod289(vec2 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
-          vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+          float hash(float n) { return fract(sin(n * 127.1) * 43758.5453123); }
+          float hash2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
 
-          float snoise(vec2 v) {
-            const vec4 C = vec4(
-              0.211324865405187,   // (3.0-sqrt(3.0))/6.0
-              0.366025403784439,   // 0.5*(sqrt(3.0)-1.0)
-             -0.577350269189626,   // -1.0 + 2.0 * C.x
-              0.024390243902439    // 1.0/41.0
-            );
-            vec2 i  = floor(v + dot(v, C.yy));
-            vec2 x0 = v - i + dot(i, C.xx);
-            vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-            vec4 x12 = x0.xyxy + C.xxzz;
-            x12.xy -= i1;
-            i = mod289(i);
-            vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0))
-                                           + i.x + vec3(0.0, i1.x, 1.0));
-            vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy),
-                                     dot(x12.zw,x12.zw)), 0.0);
-            m = m*m; m = m*m;
-            vec3 x = 2.0 * fract(p * C.www) - 1.0;
-            vec3 h = abs(x) - 0.5;
-            vec3 ox = floor(x + 0.5);
-            vec3 a0 = x - ox;
-            m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
-            vec3 g;
-            g.x = a0.x * x0.x + h.x * x0.y;
-            g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-            return 130.0 * dot(m, g);
-          }
-
-          // fractional Brownian motion
-          float fbm(vec2 p, float t, float speed) {
-            float v = 0.0;
-            float a = 0.5;
-            vec2 shift = vec2(100.0);
-            mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5)); // rotate to reduce axial bias
-            for (int i = 0; i < 3; i++) {
-              v += a * snoise(p + t * speed);
-              p = rot * p * 2.0 + shift;
-              a *= 0.5;
-            }
-            return v;
-          }
-
-          // smooth blend between phases
-          float phaseField(float n, float sharpness) {
-            return smoothstep(-sharpness, sharpness, n);
+          vec4 getObs(int i) {
+            if (i == 0) return u_obs1;
+            if (i == 1) return u_obs2;
+            if (i == 2) return u_obs3;
+            return u_obs4;
           }
 
           void main() {
-            float s = u_scale;
-            vec2 uv = gl_FragCoord.xy / u_res;
+            vec2  uv     = gl_FragCoord.xy / u_res;
             float aspect = u_res.x / u_res.y;
-            vec2 p = (uv - 0.5) * vec2(aspect, 1.0);
+            vec2  p      = vec2(uv.x * aspect, uv.y);
+            float px     = 1.0 / u_res.y;
+            float thick  = px * 1.5;
 
-            float t = u_time * 0.10;
+            float a = 0.0;
 
-            // — gravity bias with scroll-driven lateral drift —
-            vec2 gravity = vec2(u_scrollY * 0.12, -t * 0.1);
+            if (u_obsCount > 0) {
+              // Combined bounding box of all obstacles
+              float cL = 1e5, cR = -1e5, cB = 1e5, cT = -1e5;
+              for (int i = 0; i < 4; i++) {
+                if (i >= u_obsCount) break;
+                vec4 ob = getObs(i);
+                vec2 oc = vec2(ob.x * aspect, ob.y);
+                vec2 hs = vec2(ob.z * aspect, ob.w);
+                cL = min(cL, oc.x - hs.x);
+                cR = max(cR, oc.x + hs.x);
+                cB = min(cB, oc.y - hs.y);
+                cT = max(cT, oc.y + hs.y);
+              }
 
-            // — base flow field shared by all phases —
-            float flow_x = snoise(p * vec2(1.2, 2.5) * s + vec2(t * 0.08, -t * 0.3)) * 0.3;
-            float flow_y = snoise(p * vec2(1.5, 2.0) * s + vec2(-t * 0.06, -t * 0.25)) * 0.3;
-            vec2 flow = vec2(flow_x, flow_y);
+              // Shrink obstacle bounds inward — tolerance zone lets particles
+              // overlap the text edges slightly, making corridors wider
+              float tol = 0.06;
+              cL += tol;
+              cR -= tol;
+              cB += tol * 0.5;
+              cT -= tol * 0.5;
+              // Ensure obstacle still has positive size
+              if (cL >= cR) { cL = (cL + cR) * 0.5 - 0.01; cR = cL + 0.02; }
 
-            // — bubble centers from uniforms (computed on CPU) —
-            float rA = min(length(p - u_cA1), length(p - u_cA2));
-            float rB = min(length(p - u_cB1), length(p - u_cB2));
-            float rC = min(length(p - u_cC1), length(p - u_cC2));
+              float leftW  = max(cL, 0.001);
+              float rightW = max(aspect - cR, 0.001);
+              float obsCX  = (cL + cR) * 0.5;
 
-            float blobA = smoothstep(0.65 / s, 0.0, rA);
-            float blobB = smoothstep(0.55 / s, 0.0, rB);
-            float blobC = smoothstep(0.60 / s, 0.0, rC);
+              // Source tube centered under obstacle
+              float tubeHW = 0.18;
+              float tubeCX = obsCX;
 
-            // — phase positions with flow and gravity —
-            vec2 pA = p + flow + gravity * 1.2;
-            vec2 pB = p + flow + gravity * 0.6;
-            vec2 pC = p + flow + gravity * 0.9;
+              // Particles die shortly above obstacle top
+              float deathCeil = cT + 0.5;
 
-            // — mutual displacement: phases push each other —
-            vec2 pushA = vec2(
-              snoise(pB * 2.0 * s + vec2(3.1, 7.4)) * 0.15,
-              snoise(pC * 2.0 * s + vec2(6.2, 1.8)) * 0.15
-            );
-            vec2 pushB = vec2(
-              snoise(pA * 2.0 * s + vec2(9.3, 2.6)) * 0.15,
-              snoise(pC * 1.8 * s + vec2(4.7, 8.1)) * 0.15
-            );
-            vec2 pushC = vec2(
-              snoise(pA * 1.8 * s + vec2(2.9, 5.3)) * 0.15,
-              snoise(pB * 1.8 * s + vec2(7.6, 3.4)) * 0.15
-            );
+              // Blend: 0 far below obstacle → 1 at obstacle bottom
+              float bStart = max(cB - 0.35, -0.15);
+              float bEnd   = cB - 0.02;
+              float b      = smoothstep(bStart, bEnd, p.y);
 
-            // — phase fields with mutual influence (single pass) —
-            float nA = blobA + 0.4 * fbm((pA + pushA) * 2.0 * s + vec2(1.7, 9.2), t, 0.25);
-            nA += 0.15 * snoise((pA + pushA) * vec2(3.0, 4.5) * s + vec2(t * 0.2, -t * 0.5));
+              // Above obstacle: converge back toward center before death
+              float converge = smoothstep(cT + 0.02, deathCeil - 0.02, p.y);
+              b = mix(b, 0.0, converge);
 
-            float nB = blobB + 0.4 * fbm((pB + pushB) * 1.5 * s + vec2(5.3, 2.8), t, 0.15);
-            nB += 0.12 * snoise((pB + pushB) * vec2(2.0, 3.0) * s + vec2(-t * 0.1, -t * 0.3));
+              for (int layer = 0; layer < 4; layer++) {
+                float lSeed = float(layer) * 1000.0;
+                float lSpd  = (layer < 2) ? 0.09 : 0.16;
+                float lMaxA = (layer < 2) ? 0.20 : 0.45;
 
-            float nC = blobC + 0.4 * fbm((pC + pushC) * 1.8 * s + vec2(8.1, 4.6), t, 0.20);
-            nC += 0.13 * snoise((pC + pushC) * vec2(2.5, 3.8) * s + vec2(t * 0.15, -t * 0.4));
+                for (int g = 0; g < 2; g++) {
+                  float seed = lSeed + (g == 0 ? 0.0 : 500.0);
 
-            // — winner-takes-all: opaque paint, no blending —
-            vec3 cA = u_colA;
-            vec3 cB = u_colB;
-            vec3 cC = u_colC;
+                  // Source (tube half) and target (corridor) intervals
+                  float sS, sW, tS, tW;
+                  if (g == 0) { sS = tubeCX - tubeHW; sW = tubeHW; tS = 0.0; tW = leftW; }
+                  else        { sS = tubeCX;           sW = tubeHW; tS = cR;  tW = rightW; }
 
-            // — boost the selected phase by transition amount —
-            float boost = u_transition * 3.0;
-            float tA = nA + (u_transitionPhase < 0.5 ? boost : 0.0);
-            float tB = nB + (u_transitionPhase > 0.5 && u_transitionPhase < 1.5 ? boost : 0.0);
-            float tC = nC + (u_transitionPhase > 1.5 ? boost : 0.0);
+                  // x(t,b) = (1-b)*(sS + t*sW) + b*(tS + t*tW)
+                  float baseX = (1.0 - b) * sS + b * tS;
+                  float scale = (1.0 - b) * sW + b * tW;
+                  if (scale < px * 2.0) continue;
 
-            // — hard selection: highest field value owns the pixel —
-            vec3 col = cC;
-            float maxN = tC;
-            if (tA > maxN) { col = cA; maxN = tA; }
-            if (tB > maxN) { col = cB; maxN = tB; }
+                  // Parameter t for this pixel
+                  float t = (p.x - baseX) / scale;
+                  if (t < -0.06 || t > 1.06) continue;
 
-            // — subtle contour at phase boundaries —
-            float sortedMax = max(tA, max(tB, tC));
-            float sortedMin = min(tA, min(tB, tC));
-            float sortedMid = (tA + tB + tC) - sortedMax - sortedMin;
-            float edgeDist = sortedMax - sortedMid;
-            float contour = 1.0 - smoothstep(0.0, 0.1, edgeDist);
-            col *= 1.0 - contour * 0.12;
+                  // Lane count: fill corridor at ~8px spacing
+                  float numLanes = max(floor(tW / (px * 8.0)), 4.0);
 
+                  float laneF = t * numLanes - 0.5;
+                  float bLane = floor(laneF);
+
+                  for (float di = 0.0; di <= 2.0; di += 1.0) {
+                    float lane = bLane + di;
+                    if (lane < 0.0 || lane >= numLanes) continue;
+
+                    float lh = hash(lane * 127.1 + seed);
+                    if (lh < 0.15) continue;
+
+                    float laneT = (lane + 0.5) / numLanes;
+                    laneT += (hash(lane * 311.7 + seed) - 0.5) * 0.5 / numLanes;
+
+                    // Screen-space distance (constant regardless of squeeze)
+                    float sDist = (t - laneT) * scale;
+                    if (abs(sDist) > thick * 3.0) continue;
+
+                    // Lifecycle
+                    float birthY = -0.08 - lh * 0.12;
+                    float spd    = lSpd + hash(lane * 41.3 + seed) * 0.03;
+                    float span   = deathCeil - birthY;
+                    float cycle  = fract(u_time * spd / span + lh);
+                    float headY  = birthY + cycle * span;
+                    float life   = cycle;
+
+                    float trailLen = 0.04 + lh * 0.06;
+                    trailLen *= smoothstep(0.0, 0.06, life);
+                    trailLen *= smoothstep(1.0, 0.75, life);
+
+                    float distY = headY - p.y;
+                    float rad   = thick;
+                    if (distY < -rad || distY > trailLen + rad) continue;
+
+                    // Swirl near death
+                    float swirlOn  = step(0.5, hash(lane * 83.9 + seed));
+                    float swirlAmt = smoothstep(0.6, 1.0, life) * swirlOn;
+                    float swirlDir = (hash(lane * 61.3 + seed) > 0.5) ? 1.0 : -1.0;
+                    float swirl    = sin(distY * 35.0 + u_time * 2.5 + lh * 6.28)
+                                   * swirlAmt * swirlDir * px * 3.0;
+
+                    float finalDist = abs(sDist + swirl);
+
+                    // Rounded rect SDF
+                    float hw = thick;
+                    float hh = trailLen * 0.5;
+                    vec2 q   = vec2(finalDist, abs(distY - hh)) - vec2(hw, hh) + rad;
+                    float sdf = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - rad;
+
+                    float lineA    = smoothstep(thick * 0.5, -thick * 0.3, sdf);
+                    float tPos     = max(distY, 0.0) / max(trailLen, 0.001);
+                    float tailFade = 1.0 - tPos * tPos;
+
+                    float lifeA = smoothstep(1.0, 0.78, life);
+                    lifeA *= smoothstep(-0.01, 0.02, headY - trailLen);
+
+                    float fa = lineA * tailFade * lifeA * lMaxA * (0.5 + lh * 0.5);
+                    a = max(a, fa);
+                  }
+                }
+              }
+            } else {
+              // No obstacles — straight vertical lanes
+              for (int layer = 0; layer < 4; layer++) {
+                float seed = float(layer) * 173.0;
+                float lSpd = (layer < 2) ? 0.09 : 0.16;
+                float lMaxA = (layer < 2) ? 0.20 : 0.45;
+                float laneW  = px * 8.0;
+                float laneIdx = floor(p.x / laneW);
+
+                for (float di = -1.0; di <= 1.0; di += 1.0) {
+                  float lane = laneIdx + di;
+                  float lh   = hash(lane * 127.1 + seed);
+                  if (lh < 0.15) continue;
+
+                  float laneX = (lane + 0.5) * laneW;
+                  laneX += (hash(lane * 311.7 + seed) - 0.5) * laneW * 0.6;
+
+                  float signedD = p.x - laneX;
+                  if (abs(signedD) > thick * 2.0) continue;
+
+                  float birthY = -0.10 - lh * 0.20;
+                  float deathY = 1.0 + lh * 0.30;
+                  float span   = deathY - birthY;
+                  float spd    = lSpd + lh * 0.03;
+                  float cycle  = fract(u_time * spd / span + lh);
+                  float headY  = birthY + cycle * span;
+                  float life   = cycle;
+
+                  float trailLen = 0.05 + lh * 0.08;
+                  trailLen *= smoothstep(0.0, 0.08, life);
+                  trailLen *= smoothstep(1.0, 0.65, life);
+
+                  float distY = headY - p.y;
+                  float rad = thick;
+                  if (distY < -rad || distY > trailLen + rad) continue;
+
+                  float swirlOn    = step(0.45, hash(lane * 83.9 + seed));
+                  float swirlPhase = smoothstep(0.55, 1.0, life) * swirlOn;
+                  float swirlDir   = (hash(lane * 61.3 + seed) > 0.5) ? 1.0 : -1.0;
+                  float swirl      = sin(distY * 35.0 + u_time * 2.5 + lh * 6.28)
+                                   * swirlPhase * swirlDir * px * 3.0;
+
+                  float finalDist = abs(signedD + swirl);
+
+                  float hw = thick;
+                  float hh = trailLen * 0.5;
+                  vec2 q = vec2(finalDist, abs(distY - hh)) - vec2(hw, hh) + rad;
+                  float sdf = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - rad;
+
+                  float lineA    = smoothstep(thick * 0.5, -thick * 0.3, sdf);
+                  float tPos     = max(distY, 0.0) / max(trailLen, 0.001);
+                  float tailFade = 1.0 - tPos * tPos;
+
+                  float lifeA = smoothstep(1.0, 0.70, life);
+                  lifeA *= smoothstep(-0.02, 0.03, headY - trailLen);
+
+                  float fa = lineA * tailFade * lifeA * lMaxA * (0.5 + lh * 0.5);
+                  a = max(a, fa);
+                }
+              }
+            }
+
+            // Page transition: flood screen with line color
+            a = mix(a, 1.0, u_transition);
+
+            vec3 col = mix(u_bgColor, u_lineColor, a);
             gl_FragColor = vec4(col, 1.0);
           }
         `}

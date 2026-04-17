@@ -16,6 +16,7 @@ export interface UIStrings {
 
 export interface HomePageData {
   headline: string;
+  subtitle: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
 }
@@ -45,6 +46,7 @@ export const getHomePage = createServerFn()
     const data = await res.json();
     return {
       headline: data.headline,
+      subtitle: data.subtitle ?? null,
       metaTitle: data.metaTitle ?? null,
       metaDescription: data.metaDescription ?? null,
     } as HomePageData;

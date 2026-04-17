@@ -55,7 +55,7 @@ export default function ProjectCard({
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="feature-card cursor-pointer rounded-2xl border border-(--line) p-5 opacity-0 backdrop-blur-sm sm:p-6"
+      className="feature-card h-full cursor-pointer rounded-2xl border border-(--line) p-5 backdrop-blur-sm transition-all duration-500 sm:p-6"
       style={{
         ...style,
         backgroundColor: PHASE_BG[phase % 3],

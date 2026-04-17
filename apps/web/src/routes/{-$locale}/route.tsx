@@ -3,8 +3,9 @@ import {
   Outlet,
   redirect,
   useLocation,
+  useRouter,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import Header from "@/components/Header";
 import { getSiteSettings } from "@/functions/getGlobals";
 import type { Locale } from "@/functions/getGlobals";
@@ -12,6 +13,8 @@ import { detectPreferredLocale } from "@/functions/detectLocale";
 import {
   SUPPORTED_LOCALES,
   DEFAULT_LOCALE,
+  LOCALE_COOKIE,
+  localePath,
   stripLocalePrefix,
 } from "@/lib/locale";
 
@@ -66,6 +69,20 @@ function LocaleLayout() {
     document.documentElement.lang = locale;
   }, [locale]);
 
+  const router = useRouter();
+  const targetLocale: Locale = locale === DEFAULT_LOCALE ? "fr" : "en";
+  const basePath = stripLocalePrefix(pathname);
+  const switchHref = localePath(basePath, targetLocale);
+
+  const handleLangSwitch = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      document.cookie = `${LOCALE_COOKIE}=${targetLocale}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax`;
+      router.navigate({ href: switchHref, resetScroll: false });
+    },
+    [router, switchHref, targetLocale],
+  );
+
   return (
     <>
       <Header
@@ -78,6 +95,39 @@ function LocaleLayout() {
       <div className="flex flex-1 flex-col">
         <Outlet />
       </div>
+      <footer className="site-footer py-6 text-center text-xs text-(--sea-ink-soft) backdrop-blur-sm">
+        <div className="page-wrap flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+          <span>© {new Date().getFullYear()} Evan Gruère</span>
+          <div className="flex items-center gap-3">
+            {/* Language switcher — mobile only (desktop version is in the header) */}
+            <a
+              href={switchHref}
+              onClick={handleLangSwitch}
+              className="rounded-xl px-2 py-1.5 text-xs font-semibold uppercase no-underline transition hover:text-(--sea-ink) sm:hidden"
+            >
+              {locale === "en" ? "FR" : "EN"}
+            </a>
+            {siteSettings.contactEmail && (
+              <a
+                href={`mailto:${siteSettings.contactEmail}`}
+                className="transition hover:text-(--sea-ink)"
+              >
+                {siteSettings.contactEmail}
+              </a>
+            )}
+            {siteSettings.githubUrl && (
+              <a
+                href={siteSettings.githubUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-(--sea-ink)"
+              >
+                GitHub
+              </a>
+            )}
+          </div>
+        </div>
+      </footer>
     </>
   );
 }

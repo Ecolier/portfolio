@@ -151,7 +151,7 @@ export default function Header({
         <a
           href={switchHref}
           onClick={handleLangSwitch}
-          className="ml-auto rounded-xl px-2 py-1.5 text-xs font-semibold uppercase text-(--sea-ink-soft) no-underline transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
+          className="ml-auto hidden rounded-xl px-2 py-1.5 text-xs font-semibold uppercase text-(--sea-ink-soft) no-underline transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink) sm:block"
         >
           {locale === "en" ? "FR" : "EN"}
         </a>
