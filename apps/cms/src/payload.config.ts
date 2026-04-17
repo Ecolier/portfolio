@@ -10,6 +10,10 @@ import { Media } from './collections/Media'
 import { Project } from './collections/Project'
 import { Tag } from './collections/Tag'
 
+import { HomePage } from './globals/HomePage'
+import { AboutPage } from './globals/AboutPage'
+import { SiteSettings } from './globals/SiteSettings'
+
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -21,6 +25,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, Project, Tag],
+  globals: [HomePage, AboutPage, SiteSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

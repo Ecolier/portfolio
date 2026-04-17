@@ -26,6 +26,12 @@
   --link-bg-hover: rgba(255, 255, 255, 0.9);
   --hero-a: rgba(79, 184, 178, 0.36);
   --hero-b: rgba(47, 106, 74, 0.2);
+  --phase-a: rgba(245, 195, 195, 0.6);
+  --phase-b: rgba(240, 210, 210, 0.6);
+  --phase-c: rgba(250, 230, 230, 0.6);
+  --phase-a-bg: #fcf8f8;
+  --phase-b-bg: #fbefef;
+  --phase-c-bg: #ffffff;
 }
 
 :root[data-theme="dark"] {
@@ -48,6 +54,12 @@
   --link-bg-hover: rgba(24, 44, 49, 0.8);
   --hero-a: rgba(96, 215, 207, 0.18);
   --hero-b: rgba(110, 200, 154, 0.12);
+  --phase-a: rgba(60, 80, 110, 0.7);
+  --phase-b: rgba(40, 60, 90, 0.7);
+  --phase-c: rgba(25, 40, 60, 0.7);
+  --phase-a-bg: #1f2938;
+  --phase-b-bg: #141f2e;
+  --phase-c-bg: #0d141f;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -71,6 +83,12 @@
     --link-bg-hover: rgba(24, 44, 49, 0.8);
     --hero-a: rgba(96, 215, 207, 0.18);
     --hero-b: rgba(110, 200, 154, 0.12);
+    --phase-a: rgba(60, 80, 110, 0.7);
+    --phase-b: rgba(40, 60, 90, 0.7);
+    --phase-c: rgba(25, 40, 60, 0.7);
+    --phase-a-bg: #1f2938;
+    --phase-b-bg: #141f2e;
+    --phase-c-bg: #0d141f;
   }
 }
 
@@ -78,14 +96,9 @@
   box-sizing: border-box;
 }
 
-html,
-body,
-#app {
-  min-height: 100%;
-}
-
 body {
   margin: 0;
+  padding-bottom: env(safe-area-inset-bottom);
   color: var(--sea-ink);
   font-family: var(--font-sans);
   background-color: transparent;
@@ -139,14 +152,6 @@ pre code {
     0 22px 44px rgba(30, 90, 72, 0.1),
     0 6px 18px rgba(23, 58, 64, 0.08);
   backdrop-filter: blur(4px);
-}
-
-.feature-card {
-  background: linear-gradient(165deg, color-mix(in oklab, var(--surface-strong) 93%, white 7%), var(--surface));
-  box-shadow:
-    0 1px 0 var(--inset-glint) inset,
-    0 18px 34px rgba(30, 90, 72, 0.1),
-    0 4px 14px rgba(23, 58, 64, 0.06);
 }
 
 .feature-card:hover {
@@ -224,4 +229,14 @@ a {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.fluid-cta {
+  background: transparent;
+  backdrop-filter: none;
+  border-color: color-mix(in oklab, var(--lagoon) 40%, transparent);
+}
+
+.fluid-cta:hover {
+  background: color-mix(in oklab, var(--lagoon) 8%, transparent);
 }

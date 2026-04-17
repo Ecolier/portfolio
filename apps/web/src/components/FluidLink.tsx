@@ -6,16 +6,18 @@ export default function FluidLink({
   to,
   children,
   className,
+  phase,
 }: {
   to: string;
   children: ReactNode;
   className?: string;
+  phase?: number;
 }) {
   const navigateWithTransition = useFluidTransition();
 
   function handleClick(e: MouseEvent) {
     e.preventDefault();
-    navigateWithTransition(to);
+    navigateWithTransition(to, phase);
   }
 
   return (
