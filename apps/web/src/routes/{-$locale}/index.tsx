@@ -12,6 +12,7 @@ import {
 } from "@/lib/locale";
 import { useFluidTransition } from "@/hooks/useFluidTransition";
 import { windState } from "@/components/TrippyPlane";
+import DuckMascot from "@/components/DuckMascot";
 
 export const Route = createFileRoute("/{-$locale}/")({
   component: Home,
@@ -68,25 +69,26 @@ function Home() {
   const { projects, homePage, siteSettings } = Route.useLoaderData();
   const { locale } = Route.useRouteContext() as { locale: Locale };
   const sectionsRef = useRef<HTMLElement[]>([]);
-  const headlineRef = useRef<HTMLHeadingElement>(null);
-  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const canopyRef = useRef<HTMLDivElement>(null);
   const navigateWithTransition = useFluidTransition();
 
-  // ── Measure headline / subtitle for wind-tunnel obstacle deflection ──
+  // ── Measure umbrella canopy for wind-tunnel obstacle deflection ──
   useEffect(() => {
     function measure() {
-      const els = [headlineRef.current, subtitleRef.current].filter(
-        Boolean,
-      ) as HTMLElement[];
-      windState.obstacles = els.map((el) => {
-        const r = el.getBoundingClientRect();
-        return {
+      const el = canopyRef.current;
+      if (!el) {
+        windState.obstacles = [];
+        return;
+      }
+      const r = el.getBoundingClientRect();
+      windState.obstacles = [
+        {
           x: (r.left + r.width / 2) / window.innerWidth,
           y: 1 - (r.top + r.height / 2) / window.innerHeight,
           w: r.width / 2 / window.innerWidth,
           h: r.height / 2 / window.innerHeight,
-        };
-      });
+        },
+      ];
     }
     measure();
     window.addEventListener("scroll", measure, { passive: true });
@@ -124,7 +126,7 @@ function Home() {
   }, [projects]);
 
   // ── Scroll cue: fade on scroll ──
-  const cueRef = useRef<HTMLDivElement>(null);
+  const cueRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     function onScroll() {
       if (window.scrollY > 80 && cueRef.current) {
@@ -142,28 +144,31 @@ function Home() {
   return (
     <main className="flex-1">
       {/* ── Hero ── */}
-      <section className="flex min-h-svh snap-start flex-col items-center justify-center px-4">
-        <h1
-          ref={headlineRef}
-          className="display-title rise-in text-center text-4xl font-bold text-(--sea-ink) drop-shadow-[0_2px_12px_rgba(0,0,0,0.06)] sm:text-6xl md:text-7xl"
-        >
-          {homePage.headline}
-        </h1>
-        {homePage.subtitle && (
-          <p
-            ref={subtitleRef}
-            className="rise-in mt-4 max-w-xl text-center text-base text-(--sea-ink-soft) sm:text-lg"
-            style={{ animationDelay: "200ms" }}
-          >
-            {homePage.subtitle}
-          </p>
-        )}
+      <section
+        className="grid snap-start grid-rows-[minmax(0,1fr)_auto] items-center justify-items-center px-4"
+        style={{ height: "calc(100svh - var(--header-h))" }}
+      >
+        <div className="flex min-h-0 flex-col items-center">
+          <DuckMascot canopyRef={canopyRef}>
+            <h1 className="display-title rise-in text-center text-4xl font-bold text-(--sea-ink) drop-shadow-[0_2px_12px_rgba(0,0,0,0.06)] sm:text-6xl md:text-7xl">
+              {homePage.headline}
+            </h1>
+            {homePage.subtitle && (
+              <p
+                className="rise-in mt-4 max-w-xl text-center text-base text-(--sea-ink-soft) sm:text-lg"
+                style={{ animationDelay: "200ms" }}
+              >
+                {homePage.subtitle}
+              </p>
+            )}
+          </DuckMascot>
+        </div>
 
         {/* Scroll cue */}
         <button
           type="button"
           ref={cueRef}
-          className="rise-in absolute bottom-8 flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-(--sea-ink-soft) transition-opacity duration-500"
+          className="rise-in mb-8 flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-(--sea-ink-soft) transition-opacity duration-500"
           style={{ animationDelay: "600ms" }}
           onClick={() =>
             document

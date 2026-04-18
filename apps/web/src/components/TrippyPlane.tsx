@@ -43,7 +43,6 @@ export const fluidState = {
 export default function TrippyPlane() {
   const materialRef = useRef<THREE.ShaderMaterial>(null!);
   const targetPalette = useRef(PALETTES[getResolvedTheme()]);
-  const scrollRef = useRef(0);
 
   const uniforms = useMemo(() => {
     const initial = PALETTES[getResolvedTheme()];
@@ -59,7 +58,6 @@ export default function TrippyPlane() {
       u_obsCount: { value: 0 },
       u_transition: { value: 0.0 },
       u_transitionPhase: { value: 0.0 },
-      u_scrollY: { value: 0.0 },
     };
   }, []);
 
@@ -81,18 +79,6 @@ export default function TrippyPlane() {
     };
   }, []);
 
-  // Scroll listener
-  useEffect(() => {
-    function onScroll() {
-      const maxScroll =
-        document.documentElement.scrollHeight - window.innerHeight;
-      scrollRef.current = maxScroll > 0 ? window.scrollY / maxScroll : 0;
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   useFrame(({ gl }, delta) => {
     if (!materialRef.current) return;
     const u = materialRef.current.uniforms;
@@ -100,22 +86,28 @@ export default function TrippyPlane() {
 
     u.u_time.value = elapsed;
     u.u_res.value.set(gl.domElement.width, gl.domElement.height);
-    u.u_scrollY.value = scrollRef.current;
 
     // Lerp colors toward target palette
     const lf = 1 - Math.exp(-6 * delta);
     u.u_bgColor.value.lerp(targetPalette.current.bg, lf);
     u.u_lineColor.value.lerp(targetPalette.current.line, lf);
 
-    // Sync obstacle uniforms from windState
+    // Snap obstacle uniforms directly — no lerp needed for a fixed element
     const obs = windState.obstacles;
     u.u_obsCount.value = Math.min(obs.length, 4);
     const targets = [u.u_obs1, u.u_obs2, u.u_obs3, u.u_obs4];
     for (let i = 0; i < 4; i++) {
+      const v = targets[i].value;
       if (i < obs.length) {
-        targets[i].value.set(obs[i].x, obs[i].y, obs[i].w, obs[i].h);
+        v.x = obs[i].x;
+        v.y = obs[i].y;
+        v.z = obs[i].w;
+        v.w = obs[i].h;
       } else {
-        targets[i].value.set(0, 0, 0, 0);
+        v.x = 0;
+        v.y = 0;
+        v.z = 0;
+        v.w = 0;
       }
     }
   });
@@ -144,7 +136,6 @@ export default function TrippyPlane() {
           uniform vec4  u_obs4;
           uniform int   u_obsCount;
           uniform float u_transition;
-          uniform float u_scrollY;
 
           float hash(float n) { return fract(sin(n * 127.1) * 43758.5453123); }
           float hash2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
@@ -179,23 +170,28 @@ export default function TrippyPlane() {
                 cT = max(cT, oc.y + hs.y);
               }
 
-              // Shrink obstacle bounds inward — tolerance zone lets particles
-              // overlap the text edges slightly, making corridors wider
-              float tol = 0.06;
-              cL += tol;
-              cR -= tol;
-              cB += tol * 0.5;
-              cT -= tol * 0.5;
-              // Ensure obstacle still has positive size
-              if (cL >= cR) { cL = (cL + cR) * 0.5 - 0.01; cR = cL + 0.02; }
+              // Expand obstacle bounds outward — margin keeps particles
+              // clear of the canopy edges
+              float margin = 0.02;
+              cL -= margin;
+              cR += margin;
+              cB -= margin * 0.5;
+              cT += margin * 0.5;
 
-              float leftW  = max(cL, 0.001);
-              float rightW = max(aspect - cR, 0.001);
+              float rawLeftW  = max(cL, 0.001);
+              float rawRightW = max(aspect - cR, 0.001);
               float obsCX  = (cL + cR) * 0.5;
 
-              // Source tube centered under obstacle
-              float tubeHW = 0.18;
-              float tubeCX = obsCX;
+              // Cap corridor width so lanes stay centered near the obstacle
+              float maxCorridorW = 0.25;
+              float leftW  = min(rawLeftW, maxCorridorW);
+              float rightW = min(rawRightW, maxCorridorW);
+              // Offset corridors to hug the obstacle edge
+              float leftStart  = cL - leftW;
+              float rightStart = cR;
+
+              // Source spans full viewport width — particles originate everywhere
+              // and funnel into corridors around the obstacle
 
               // Particles die shortly above obstacle top
               float deathCeil = cT + 0.5;
@@ -217,10 +213,10 @@ export default function TrippyPlane() {
                 for (int g = 0; g < 2; g++) {
                   float seed = lSeed + (g == 0 ? 0.0 : 500.0);
 
-                  // Source (tube half) and target (corridor) intervals
+                  // Source spans full viewport half, target is the capped corridor
                   float sS, sW, tS, tW;
-                  if (g == 0) { sS = tubeCX - tubeHW; sW = tubeHW; tS = 0.0; tW = leftW; }
-                  else        { sS = tubeCX;           sW = tubeHW; tS = cR;  tW = rightW; }
+                  if (g == 0) { sS = 0.0;    sW = obsCX;          tS = leftStart; tW = leftW; }
+                  else        { sS = obsCX;   sW = aspect - obsCX; tS = rightStart; tW = rightW; }
 
                   // x(t,b) = (1-b)*(sS + t*sW) + b*(tS + t*tW)
                   float baseX = (1.0 - b) * sS + b * tS;
@@ -232,7 +228,7 @@ export default function TrippyPlane() {
                   if (t < -0.06 || t > 1.06) continue;
 
                   // Lane count: fill corridor at ~8px spacing
-                  float numLanes = max(floor(tW / (px * 8.0)), 4.0);
+                  float numLanes = clamp(floor(tW / (px * 8.0)), 4.0, 48.0);
 
                   float laneF = t * numLanes - 0.5;
                   float bLane = floor(laneF);

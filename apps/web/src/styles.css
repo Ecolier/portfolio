@@ -7,6 +7,7 @@
 }
 
 :root {
+  --header-h: 3.5rem;
   --sea-ink: #1e2d3d;
   --sea-ink-soft: #4a5e6e;
   --lagoon: #6b9dba;
@@ -38,6 +39,24 @@
   --selection-bg: rgba(107, 157, 186, 0.24);
   --shadow-island: rgba(30, 50, 72, 0.1);
   --shadow-island-sm: rgba(30, 45, 61, 0.08);
+  --duck-feet: #ff9e00;
+  --duck-beak: #ff6400;
+  --duck-eye: var(--foam);
+  --duck-body: #1a2d52;
+  --duck-body-dark: #0f1e3a;
+  --duck-body-soft: #2d3f6a;
+  --umbrella-pole: #9ab0be;
+  --umbrella-pole-soft: #b5c8d4;
+  --umbrella: #b5547a;
+  --umbrella-deep: #9e4268;
+  --umbrella-stripe: #e8edf3;
+  --umbrella-stripe-soft: #d5dce6;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --header-h: 4rem;
+  }
 }
 
 :root[data-theme="dark"] {
@@ -72,6 +91,18 @@
   --selection-bg: rgba(123, 184, 212, 0.2);
   --shadow-island: rgba(0, 0, 0, 0.25);
   --shadow-island-sm: rgba(0, 0, 0, 0.15);
+  --duck-feet: #ffb733;
+  --duck-beak: #ff8533;
+  --duck-eye: #ffffff;
+  --duck-body: #4e5a8a;
+  --duck-body-dark: #3a4470;
+  --duck-body-soft: #6a78a4;
+  --umbrella-pole: #253640;
+  --umbrella-pole-soft: #34495a;
+  --umbrella: #9e4a6a;
+  --umbrella-deep: #c06888;
+  --umbrella-stripe: #1a2430;
+  --umbrella-stripe-soft: #253440;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -107,6 +138,18 @@
     --selection-bg: rgba(123, 184, 212, 0.2);
     --shadow-island: rgba(0, 0, 0, 0.25);
     --shadow-island-sm: rgba(0, 0, 0, 0.15);
+    --duck-feet: #ffb733;
+    --duck-beak: #ff8533;
+    --duck-eye: #ffffff;
+    --duck-body: #4e5a8a;
+    --duck-body-dark: #3a4470;
+    --duck-body-soft: #6a78a4;
+    --umbrella-pole: #253640;
+    --umbrella-pole-soft: #34495a;
+    --umbrella: #9e4a6a;
+    --umbrella-deep: #c06888;
+    --umbrella-stripe: #1a2430;
+    --umbrella-stripe-soft: #253440;
   }
 }
 
@@ -257,6 +300,26 @@ html.theme-animating *::after {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ── Duck mascot: telescopic umbrella pole ── */
+.duck-pole {
+  width: 3px;
+  background: var(--sea-ink-soft);
+  opacity: 0.35;
+  border-radius: 1.5px;
+}
+
+.duck-pole::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
+  width: 5px;
+  background: var(--sea-ink);
+  opacity: 0.15;
+  border-radius: 2.5px;
 }
 
 /* CTA button: transparent window that lets the fluid simulation show through */
