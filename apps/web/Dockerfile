@@ -8,16 +8,11 @@ WORKDIR /app
 COPY . .
 RUN turbo prune @portfolio/web --docker
 
-# --- Install dependencies ---
-FROM base AS deps
+# --- Install & Build ---
+FROM base AS builder
 WORKDIR /app
 COPY --from=pruner /app/out/json/ .
 RUN pnpm install --frozen-lockfile
-
-# --- Build ---
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/ .
 COPY --from=pruner /app/out/full/ .
 RUN pnpm --filter @portfolio/web build
 
