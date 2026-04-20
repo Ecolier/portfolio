@@ -27,7 +27,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-RUN mkdir -p apps/cms/.next && chown nextjs:nodejs apps/cms/.next
+RUN mkdir -p apps/cms/.next apps/cms/media && \
+    chown nextjs:nodejs apps/cms/.next apps/cms/media
 
 COPY --from=builder --chown=nextjs:nodejs /app/apps/cms/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/cms/.next/static ./apps/cms/.next/static
