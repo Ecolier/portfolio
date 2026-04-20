@@ -21,9 +21,7 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY --from=pruner /app/out/json/ .
-RUN pnpm install --frozen-lockfile --prod
-COPY --from=builder /app/apps/web/dist ./apps/web/dist
+COPY --from=builder /app/apps/web/.output ./
 
 RUN addgroup --system --gid 1001 app && \
     adduser --system --uid 1001 app && \
@@ -34,4 +32,4 @@ EXPOSE 3000
 ENV HOST=0.0.0.0
 ENV PORT=3000
 
-CMD ["node", "apps/web/dist/server/server.js"]
+CMD ["node", "server/index.mjs"]

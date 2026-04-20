@@ -3,6 +3,7 @@ node_modules
 .next
 dist
 .output
+.vinxi
 data
 *.wt
 .env
