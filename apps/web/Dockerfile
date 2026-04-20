@@ -25,6 +25,8 @@ RUN addgroup --system --gid 1001 app && \
     adduser --system --uid 1001 app
 
 COPY --from=builder --chown=app:app /app/apps/web/dist ./dist
+COPY --from=builder --chown=app:app /app/node_modules ./node_modules
+COPY --from=builder --chown=app:app /app/apps/web/package.json ./package.json
 
 USER app
 EXPOSE 3000
