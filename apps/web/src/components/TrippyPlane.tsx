@@ -8,11 +8,13 @@ const TIME_ORIGIN = typeof performance !== "undefined" ? performance.now() : 0;
 const PALETTES = {
   light: {
     bg: new THREE.Color(0.91, 0.929, 0.953),
-    line: new THREE.Color(0.118, 0.176, 0.239),
+    line: new THREE.Color(0.102, 0.169, 0.251),
+    particle: new THREE.Color(0.58, 0.68, 0.78),
   },
   dark: {
     bg: new THREE.Color(0.043, 0.067, 0.094),
-    line: new THREE.Color(0.816, 0.863, 0.902),
+    line: new THREE.Color(0.784, 0.855, 0.922),
+    particle: new THREE.Color(0.3, 0.42, 0.55),
   },
 };
 
@@ -31,15 +33,6 @@ export const windState = {
   obstacles: [] as Array<{ x: number; y: number; w: number; h: number }>,
 };
 
-// Keep fluidState export for backward compat (about, project detail pages)
-// Writes to it are harmless no-ops — the wind shader ignores these values
-export const fluidState = {
-  hoveredPhase: -1,
-  hoveredX: 0,
-  hoveredY: 0,
-  targetScale: 1.0,
-};
-
 export default function TrippyPlane() {
   const materialRef = useRef<THREE.ShaderMaterial>(null!);
   const targetPalette = useRef(PALETTES[getResolvedTheme()]);
@@ -51,13 +44,13 @@ export default function TrippyPlane() {
       u_res: { value: new THREE.Vector2(1, 1) },
       u_bgColor: { value: initial.bg.clone() },
       u_lineColor: { value: initial.line.clone() },
+      u_particleColor: { value: initial.particle.clone() },
       u_obs1: { value: new THREE.Vector4(0, 0, 0, 0) },
       u_obs2: { value: new THREE.Vector4(0, 0, 0, 0) },
       u_obs3: { value: new THREE.Vector4(0, 0, 0, 0) },
       u_obs4: { value: new THREE.Vector4(0, 0, 0, 0) },
       u_obsCount: { value: 0 },
       u_transition: { value: 0.0 },
-      u_transitionPhase: { value: 0.0 },
     };
   }, []);
 
@@ -91,8 +84,9 @@ export default function TrippyPlane() {
     const lf = 1 - Math.exp(-6 * delta);
     u.u_bgColor.value.lerp(targetPalette.current.bg, lf);
     u.u_lineColor.value.lerp(targetPalette.current.line, lf);
+    u.u_particleColor.value.lerp(targetPalette.current.particle, lf);
 
-    // Snap obstacle uniforms directly — no lerp needed for a fixed element
+    // Snap obstacle uniforms from viewport-relative measurements
     const obs = windState.obstacles;
     u.u_obsCount.value = Math.min(obs.length, 4);
     const targets = [u.u_obs1, u.u_obs2, u.u_obs3, u.u_obs4];
@@ -118,6 +112,7 @@ export default function TrippyPlane() {
       <shaderMaterial
         ref={materialRef}
         uniforms={uniforms}
+        transparent
         vertexShader={`
           void main() {
             gl_Position = vec4(position.xy, 0.0, 1.0);
@@ -130,6 +125,7 @@ export default function TrippyPlane() {
           uniform vec2  u_res;
           uniform vec3  u_bgColor;
           uniform vec3  u_lineColor;
+          uniform vec3  u_particleColor;
           uniform vec4  u_obs1;
           uniform vec4  u_obs2;
           uniform vec4  u_obs3;
@@ -151,8 +147,7 @@ export default function TrippyPlane() {
             vec2  uv     = gl_FragCoord.xy / u_res;
             float aspect = u_res.x / u_res.y;
             vec2  p      = vec2(uv.x * aspect, uv.y);
-            float px     = 1.0 / u_res.y;
-            float thick  = px * 1.5;
+            float px = 1.0 / u_res.y;
 
             float a = 0.0;
 
@@ -183,7 +178,7 @@ export default function TrippyPlane() {
               float obsCX  = (cL + cR) * 0.5;
 
               // Cap corridor width so lanes stay centered near the obstacle
-              float maxCorridorW = 0.25;
+              float maxCorridorW = 0.38;
               float leftW  = min(rawLeftW, maxCorridorW);
               float rightW = min(rawRightW, maxCorridorW);
               // Offset corridors to hug the obstacle edge
@@ -194,21 +189,33 @@ export default function TrippyPlane() {
               // and funnel into corridors around the obstacle
 
               // Particles die shortly above obstacle top
-              float deathCeil = cT + 0.5;
+              float deathCeil = cT + 0.75;
 
-              // Blend: 0 far below obstacle → 1 at obstacle bottom
-              float bStart = max(cB - 0.35, -0.15);
-              float bEnd   = cB - 0.02;
+              // Blend: 0 far below obstacle → 1 at obstacle center
+              float bStart = cB - 0.06;
+              float bEnd   = (cB + cT) * 0.5;
               float b      = smoothstep(bStart, bEnd, p.y);
 
               // Above obstacle: converge back toward center before death
-              float converge = smoothstep(cT + 0.02, deathCeil - 0.02, p.y);
+              float converge = smoothstep(cT + 0.12, deathCeil - 0.05, p.y);
               b = mix(b, 0.0, converge);
 
-              for (int layer = 0; layer < 4; layer++) {
-                float lSeed = float(layer) * 1000.0;
-                float lSpd  = (layer < 2) ? 0.09 : 0.16;
-                float lMaxA = (layer < 2) ? 0.20 : 0.45;
+              // Venturi: speed multiplier peaks at obstacle center
+              float venturiY = smoothstep(bStart, cB, p.y) * smoothstep(deathCeil, cT, p.y);
+              float venturi  = 1.0 + venturiY * 0.5;
+
+              // Intensity boost inside corridors
+              float squeeze = b * (1.0 - converge);
+
+              for (int layer = 0; layer < 6; layer++) {
+                // Layers 0-1: slow/dim, 2-3: fast/bright, 4-5: big/sparse
+                bool isBig = (layer >= 4);
+                float lSeed = isBig ? float(layer - 4) * 3000.0 + 7000.0 : float(layer) * 1000.0;
+                float lSpd  = isBig ? 0.06 + float(layer - 4) * 0.02
+                            : ((layer < 2) ? 0.09 : 0.16);
+                float lMaxA = isBig ? 0.20
+                            : ((layer < 2) ? 0.10 : 0.22);
+                float thick = px * (isBig ? 6.0 : 3.0);
 
                 for (int g = 0; g < 2; g++) {
                   float seed = lSeed + (g == 0 ? 0.0 : 500.0);
@@ -227,8 +234,9 @@ export default function TrippyPlane() {
                   float t = (p.x - baseX) / scale;
                   if (t < -0.06 || t > 1.06) continue;
 
-                  // Lane count: fill corridor at ~8px spacing
-                  float numLanes = clamp(floor(tW / (px * 8.0)), 4.0, 48.0);
+                  // Lane count: fill corridor at ~6px spacing (big layers: ~14px)
+                  float laneSpacing = isBig ? 14.0 : 6.0;
+                  float numLanes = clamp(floor(tW / (px * laneSpacing)), 2.0, 48.0);
 
                   float laneF = t * numLanes - 0.5;
                   float bLane = floor(laneF);
@@ -247,15 +255,17 @@ export default function TrippyPlane() {
                     float sDist = (t - laneT) * scale;
                     if (abs(sDist) > thick * 3.0) continue;
 
-                    // Lifecycle
-                    float birthY = -0.08 - lh * 0.12;
+                    // Lifecycle — fixed bounds, scroll-independent
+                    float birthY = -0.3 - lh * 0.2;
+                    float span   = 1.6 + lh * 0.4;
                     float spd    = lSpd + hash(lane * 41.3 + seed) * 0.03;
-                    float span   = deathCeil - birthY;
                     float cycle  = fract(u_time * spd / span + lh);
                     float headY  = birthY + cycle * span;
                     float life   = cycle;
 
-                    float trailLen = 0.04 + lh * 0.06;
+                    float trailLen = isBig ? (0.10 + lh * 0.14) : (0.06 + lh * 0.10);
+                    // Compress trails in venturi zone
+                    trailLen /= venturi;
                     trailLen *= smoothstep(0.0, 0.06, life);
                     trailLen *= smoothstep(1.0, 0.75, life);
 
@@ -286,17 +296,23 @@ export default function TrippyPlane() {
                     lifeA *= smoothstep(-0.01, 0.02, headY - trailLen);
 
                     float fa = lineA * tailFade * lifeA * lMaxA * (0.5 + lh * 0.5);
+                    // Boost opacity in the compressed corridor
+                    fa *= 1.0 + squeeze * 0.2;
                     a = max(a, fa);
                   }
                 }
               }
             } else {
               // No obstacles — straight vertical lanes
-              for (int layer = 0; layer < 4; layer++) {
-                float seed = float(layer) * 173.0;
-                float lSpd = (layer < 2) ? 0.09 : 0.16;
-                float lMaxA = (layer < 2) ? 0.20 : 0.45;
-                float laneW  = px * 8.0;
+              for (int layer = 0; layer < 6; layer++) {
+                bool isBig = (layer >= 4);
+                float seed = isBig ? float(layer - 4) * 373.0 + 7000.0 : float(layer) * 173.0;
+                float lSpd = isBig ? 0.06 + float(layer - 4) * 0.02
+                           : ((layer < 2) ? 0.09 : 0.16);
+                float lMaxA = isBig ? 0.20
+                            : ((layer < 2) ? 0.10 : 0.22);
+                float thick = px * (isBig ? 6.0 : 3.0);
+                float laneW = px * (isBig ? 14.0 : 6.0);
                 float laneIdx = floor(p.x / laneW);
 
                 for (float di = -1.0; di <= 1.0; di += 1.0) {
@@ -318,7 +334,7 @@ export default function TrippyPlane() {
                   float headY  = birthY + cycle * span;
                   float life   = cycle;
 
-                  float trailLen = 0.05 + lh * 0.08;
+                  float trailLen = isBig ? (0.10 + lh * 0.14) : (0.06 + lh * 0.10);
                   trailLen *= smoothstep(0.0, 0.08, life);
                   trailLen *= smoothstep(1.0, 0.65, life);
 
@@ -353,10 +369,14 @@ export default function TrippyPlane() {
             }
 
             // Page transition: flood screen with line color
-            a = mix(a, 1.0, u_transition);
-
-            vec3 col = mix(u_bgColor, u_lineColor, a);
-            gl_FragColor = vec4(col, 1.0);
+            if (u_transition > 0.001) {
+              float ta = mix(a, 1.0, u_transition);
+              vec3 col = mix(u_bgColor, u_lineColor, ta);
+              gl_FragColor = vec4(col, 1.0);
+            } else {
+              // Transparent overlay — cool blue-tinted particles
+              gl_FragColor = vec4(u_particleColor, a);
+            }
           }
         `}
       />

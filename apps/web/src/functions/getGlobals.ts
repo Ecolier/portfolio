@@ -1,8 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { CMS_URL } from "@/lib/cms";
+import type { Locale } from "@/lib/locale";
 
-const CMS_URL = "http://localhost:3001";
+const localeSchema = z.enum(["en", "fr"]);
 
-export type Locale = "en" | "fr";
+export type { Locale };
 
 export interface UIStrings {
   navAbout: string;
@@ -23,7 +26,12 @@ export interface HomePageData {
 
 export interface AboutPageData {
   heading: string;
+  photo: { url: string; alt: string } | null;
   body: string;
+  currentFocus: string | null;
+  techIdentity: string | null;
+  interests: string | null;
+  contactNote: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
 }
@@ -37,7 +45,7 @@ export interface SiteSettingsData {
 }
 
 export const getHomePage = createServerFn()
-  .inputValidator((locale: Locale) => locale)
+  .inputValidator(localeSchema)
   .handler(async ({ data: locale }) => {
     const res = await fetch(
       `${CMS_URL}/api/globals/home-page?locale=${locale}`,
@@ -53,23 +61,32 @@ export const getHomePage = createServerFn()
   });
 
 export const getAboutPage = createServerFn()
-  .inputValidator((locale: Locale) => locale)
+  .inputValidator(localeSchema)
   .handler(async ({ data: locale }) => {
     const res = await fetch(
       `${CMS_URL}/api/globals/about-page?locale=${locale}`,
     );
     if (!res.ok) throw new Error(`CMS responded ${res.status}`);
     const data = await res.json();
+    const photo =
+      data.photo && typeof data.photo === "object" && data.photo.url
+        ? { url: `${CMS_URL}${data.photo.url}`, alt: data.photo.alt || "" }
+        : null;
     return {
       heading: data.heading,
+      photo,
       body: data.body,
+      currentFocus: data.currentFocus ?? null,
+      techIdentity: data.techIdentity ?? null,
+      interests: data.interests ?? null,
+      contactNote: data.contactNote ?? null,
       metaTitle: data.metaTitle ?? null,
       metaDescription: data.metaDescription ?? null,
     } as AboutPageData;
   });
 
 export const getSiteSettings = createServerFn()
-  .inputValidator((locale: Locale) => locale)
+  .inputValidator(localeSchema)
   .handler(async ({ data: locale }) => {
     const res = await fetch(
       `${CMS_URL}/api/globals/site-settings?locale=${locale}`,

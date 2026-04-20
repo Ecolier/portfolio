@@ -10,26 +10,60 @@ export default function DuckMascot({
   children,
   canopyRef: externalCanopyRef,
 }: DuckMascotProps) {
-  const duckRef = useRef<SVGSVGElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const duckSvgRef = useRef<SVGSVGElement>(null);
+  const duckWrapRef = useRef<HTMLDivElement>(null);
   const internalCanopyRef = useRef<HTMLDivElement>(null);
   const canopyRef = externalCanopyRef ?? internalCanopyRef;
+  const poleRef = useRef<HTMLDivElement>(null);
 
+  // ── Dynamic pole measurement ──
   useEffect(() => {
-    const svg = duckRef.current;
-    const wrapper = wrapperRef.current;
+    function updatePole() {
+      const container = containerRef.current;
+      const duck = duckWrapRef.current;
+      const canopy = canopyRef.current;
+      const pole = poleRef.current;
+      if (!container || !duck || !canopy || !pole) return;
+
+      const dRect = duck.getBoundingClientRect();
+      const uRect = canopy.getBoundingClientRect();
+
+      const top = dRect.top + dRect.height * 0.88 - uRect.top;
+      const bottom = uRect.height * 0.5;
+
+      pole.style.top = `${top}px`;
+      pole.style.height = `${Math.max(0, bottom - top)}px`;
+    }
+
+    updatePole();
+    window.addEventListener("resize", updatePole);
+    const ro = new ResizeObserver(updatePole);
+    if (containerRef.current) ro.observe(containerRef.current);
+
+    return () => {
+      window.removeEventListener("resize", updatePole);
+      ro.disconnect();
+    };
+  }, []);
+
+  // ── GSAP animations ──
+  useEffect(() => {
+    const svg = duckSvgRef.current;
+    const wrapper = duckWrapRef.current;
     const canopy = canopyRef.current;
-    if (!svg || !wrapper || !canopy) return;
+    const pole = poleRef.current;
+    if (!svg || !wrapper || !canopy || !pole) return;
 
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
-    const eye = svg.querySelector<SVGElement>("[data-duck=eye]")!;
-    const beak = svg.querySelector<SVGElement>("[data-duck=beak]")!;
-    const wing = svg.querySelector<SVGElement>("[data-duck=wing]")!;
-    const wingBack = svg.querySelector<SVGElement>("[data-duck=wing-back]")!;
-    const leg2 = svg.querySelector<SVGElement>("[data-duck=leg2]")!;
+    const eye = svg.querySelector<SVGElement>("#duck-eye");
+    const beak = svg.querySelector<SVGElement>("#duck-beak");
+    const wingFront = svg.querySelector<SVGElement>("#duck-wing-front");
+    const wingBack = svg.querySelector<SVGElement>("#duck-wing-back");
+    const foot = svg.querySelector<SVGElement>("#duck-foot");
 
     const ctx = gsap.context(() => {
       // ── Entrance ──
@@ -40,9 +74,7 @@ export default function DuckMascot({
 
       if (prefersReduced) return;
 
-      // ── Looping animations ──
-
-      // Duck + canopy bob together — start after entrance to avoid y conflict
+      // ── Bob — duck + pole + canopy float together ──
       entrance.add(() => {
         const sway = gsap.timeline({
           repeat: -1,
@@ -53,8 +85,8 @@ export default function DuckMascot({
         sway.to(canopy, { y: -3 }, 0);
       });
 
-      // Front wing — steady flapping like bird flight
-      gsap.to(wing, {
+      // Front wing
+      gsap.to(wingFront, {
         rotation: -8,
         duration: 0.3,
         ease: "sine.inOut",
@@ -63,7 +95,7 @@ export default function DuckMascot({
         transformOrigin: "100% 50%",
       });
 
-      // Back wing — same flap, slightly offset and wider
+      // Back wing
       gsap.to(wingBack, {
         rotation: 10,
         duration: 0.3,
@@ -74,7 +106,7 @@ export default function DuckMascot({
         transformOrigin: "100% 100%",
       });
 
-      // Blink — squish the eye group vertically
+      // Blink
       gsap
         .timeline({ repeat: -1, repeatDelay: 3.5 })
         .to(eye, {
@@ -84,7 +116,7 @@ export default function DuckMascot({
         })
         .to(eye, { scaleY: 1, duration: 0.1, transformOrigin: "50% 50%" });
 
-      // Beak opens slightly — rotate around hinge point
+      // Beak
       gsap
         .timeline({ repeat: -1, repeatDelay: 4 })
         .to(beak, {
@@ -100,306 +132,289 @@ export default function DuckMascot({
           transformOrigin: "50% 0%",
         });
 
-      // Raised leg sways left to right
-      gsap.to(leg2, {
+      // Raised foot sway
+      gsap.to(foot, {
         rotation: 4,
         duration: 1.4,
         ease: "sine.inOut",
         yoyo: true,
         repeat: -1,
-        transformOrigin: "0% 0%",
+        transformOrigin: "0% 100%",
       });
-    }, svg);
+    }, containerRef.current ?? undefined);
 
     return () => ctx.revert();
   }, []);
 
   return (
-    <div className="relative flex flex-col items-center">
+    <div ref={containerRef} className="relative flex flex-col items-center">
       {/* ── Duck ── */}
-      <div ref={wrapperRef} className="relative z-10 -mb-2">
+      <div
+        ref={duckWrapRef}
+        className="relative z-10 mb-4 w-40 sm:mb-6 sm:w-56 md:w-70"
+      >
         <svg
-          ref={duckRef}
-          viewBox="0 0 738.86 870"
-          width="240"
+          ref={duckSvgRef}
+          viewBox="0 0 754 537.01"
           fill="none"
+          className="w-full"
           role="img"
           aria-label="Duck mascot"
           style={{ overflow: "visible" }}
         >
           <defs>
-            <clipPath id="duck-foot-left-clip">
+            <clipPath id="duck-clip-foot">
+              <path d="M457.65,392.76c-12.73-12.73-12.73-25.46,0-38.18,19.09-19.09,89.09-89.1,89.09-89.1,12.73-12.73,25.46-12.73,38.18,0s12.73,25.46,0,38.18l-89.09,89.09c-12.73,12.73-25.46,12.73-38.18,0Z" />
+            </clipPath>
+            <clipPath id="duck-clip-beak">
               <rect
-                fill="#ff9e00"
-                x="540.45"
-                y="572.14"
+                x="320.46"
+                y="-7.91"
                 width="54"
-                height="180"
+                height="108"
                 rx="27"
                 ry="27"
-                transform="translate(634.41 -207.31) rotate(45)"
+                transform="translate(134.36 -232.19) rotate(45)"
               />
             </clipPath>
-            <clipPath id="duck-foot-right-clip">
-              <path
-                fill="#ff9e00"
-                d="M353.32,718.62s0,0,0,0c10.33,10.12,10.38,22.03-.08,30.02-29.6,22.46-57.21,54.61-80.1,95.91-8.06,14.58-24.72,21.95-37.91,13.06h0c-13.19-8.8-16.92-30.94-7.78-46.01,25.44-42.47,55.35-75.56,86.97-98.84,11.31-8.34,28.58-4.18,38.91,5.86Z"
-              />
-            </clipPath>
-            <clipPath id="duck-eye-clip">
-              <circle cx="437.18" cy="112.5" r="27" />
-            </clipPath>
-            <clipPath id="duck-beak-clip">
-              <rect
-                fill="#ff6400"
-                x="495.68"
-                y="98.19"
-                width="54"
-                height="117"
-                rx="27"
-                ry="27"
-                transform="translate(424.95 -380.14) rotate(62.99)"
-              />
+            <clipPath id="duck-clip-foot2">
+              <path d="M330.79,510.01c0-18,9-27,27-27,27,0,126,0,126,0,18,0,27,9,27,27s-9,27-27,27h-126c-18,0-27-9-27-27Z" />
             </clipPath>
           </defs>
 
-          {/* Left leg (raised) */}
-          <g data-duck="leg2">
-            <path
-              fill="var(--duck-body)"
-              d="M363.31,528.32c11.14-14.21,21.71-29.28,31.64-45.17,15.95,11.59,56.76,43.72,92.32,85.33,36.2,40.47,67.15,90.43,78.28,111.38-14.71,15.99-29.93,31.03-45.57,45.1-9.66-20.48-37.27-70.08-70.57-110.6-32.62-41.63-70.92-74.18-86.1-86.04Z"
-            />
-            <path
-              fill="var(--duck-body-soft)"
-              d="M509.57,651.51c-27.11-55.06-64.4-99.21-106-130.63-3.44-2.61-3.89-7.87-1.09-12.02h0c2.81-4.14,7.93-5.61,11.5-3.02,43.03,31.25,81.97,75.37,110.96,130.66,2.42,4.58.84,11.86-3.49,15.99h0c-4.34,4.14-9.65,3.58-11.88-.98Z"
-            />
-            <rect
-              fill="var(--duck-feet)"
-              x="540.45"
-              y="572.14"
-              width="54"
-              height="180"
-              rx="27"
-              ry="27"
-              transform="translate(634.41 -207.31) rotate(45)"
-            />
-            <g clipPath="url(#duck-foot-left-clip)">
-              <path
-                fill="#fff"
-                opacity="0.25"
-                d="M532.45,678.08h0c-5.27-5.27-5.27-13.95,0-18.95,23.25-22.2,46.68-42.23,70.09-66.99,5.28-5.55,13.81-6.81,19.04-2.5h0c5.23,4.31,5.24,13,0,18.95-23.26,26.25-46.75,47.15-70.03,69.59-5.27,5.06-13.82,5.16-19.09-.11Z"
-              />
-            </g>
-          </g>
-
-          {/* Wing (behind body) */}
-          <g data-duck="wing-back">
-            <path
-              fill="var(--duck-body-dark)"
-              d="M398.2,340.94c-16.05,13.71-48.94,16.49-64.17,17.77-13.12,1.11-41.42,2.05-74.65-9.4-45.95-15.84-82.96-48.55-104.19-92.12L45.7,32.53c-.99-2.04-.92-3.98.21-5.79,1.78-2.84,5.69-4.67,6.28-4.89,128.67-47.87,220.18-2.17,220.18-2.17,136.78,68.32,175.62,278.72,125.83,321.25Z"
-            />
-          </g>
-
-          {/* Body */}
-          <g data-duck="body">
-            <path
-              fill="var(--duck-body)"
-              d="M41.18,400.5c-36,0,72-108,216-108,90,0,85.61,2.68,85.61-40.5V108c0-72,144-72,144,0,0,45-.34,281.72-.03,296.78.11,5.5.46,69.12-44.71,111.39-51.1,47.82-146.5,52.38-220.87,1.33,0,0,0-117-180-117Z"
-            />
-          </g>
-
-          {/* Right leg */}
-          <g data-duck="legs">
-            <path
-              fill="var(--duck-body)"
-              d="M289.51,466.88c17.68,3.37,35.36,6.75,53.04,10.12-4.43,21.83-13.22,78.15-12.68,134.6-.59,56.45,8.14,113.04,12.68,135.4-17.68,3.37-35.36,6.75-53.04,10.12-4.81-23.7-14.23-84.35-13.63-145.04-.61-60.68,8.8-121.39,13.63-145.2Z"
-            />
-            <path
-              fill="var(--duck-body-soft)"
-              d="M317.8,706.05c-8.51-66.28-7.99-133.43,1.57-199.6.79-5.49,5.48-9.3,10.39-8.51h0c4.91.79,8.19,5.75,7.42,11.08-9.32,64.56-9.83,130.07-1.53,194.73.68,5.34-2.68,10.25-7.6,10.96h0c-4.92.71-9.55-3.16-10.25-8.67Z"
-            />
+          {/* Raised foot */}
+          <g id="duck-foot">
             <path
               fill="var(--duck-feet)"
-              d="M353.32,718.62s0,0,0,0c10.33,10.12,10.38,22.03-.08,30.02-29.6,22.46-57.21,54.61-80.1,95.91-8.06,14.58-24.72,21.95-37.91,13.06h0c-13.19-8.8-16.92-30.94-7.78-46.01,25.44-42.47,55.35-75.56,86.97-98.84,11.31-8.34,28.58-4.18,38.91,5.86Z"
+              d="M457.65,392.76c-12.73-12.73-12.73-25.46,0-38.18,19.09-19.09,89.09-89.1,89.09-89.1,12.73-12.73,25.46-12.73,38.18,0s12.73,25.46,0,38.18l-89.09,89.09c-12.73,12.73-25.46,12.73-38.18,0Z"
             />
-            <g clipPath="url(#duck-foot-right-clip)">
-              <path
-                fill="#fff"
-                opacity="0.25"
-                d="M339.92,694.87s0,0,0,0c4.86,5.8,4.35,12.67-1.26,16.2-24.86,15.61-48.91,37.26-70.81,64.79-4.93,6.2-13.64,7.51-19.53,2.07t0,0c-5.88-5.42-6.46-15.63-1.26-21.93,22.91-27.91,47.89-49.87,73.59-65.76,5.83-3.61,14.4-1.15,19.26,4.63Z"
-              />
-            </g>
-          </g>
-
-          {/* Wing / belly (front) */}
-          <g data-duck="wing">
-            <path
-              fill="var(--duck-body-soft)"
-              d="M353.2,377.6c-16.05,13.71-48.94,16.49-64.17,17.77-13.12,1.11-41.42,2.05-74.65-9.4-45.95-15.84-82.96-48.55-104.19-92.12L.7,69.2c-.99-2.04-.92-3.98.21-5.79,1.78-2.84,5.69-4.67,6.28-4.89,128.67-47.87,220.18-2.17,220.18-2.17,136.78,68.32,175.62,278.72,125.83,321.25Z"
-            />
-            <path
-              fill="var(--duck-body)"
-              d="M120.4,288.88L12.99,68.49c62.97-23.04,116.22-22.48,149.93-17.9,36.99,5.02,59.19,15.83,59.4,15.94l5.05-10.17h0S135.85,10.65,7.19,58.52c-.59.22-4.5,2.06-6.28,4.89-1.13,1.8-1.2,3.75-.21,5.79l109.49,224.65,10.21-4.98Z"
-            />
-            <path
-              fill="#fff"
-              opacity="0.06"
-              d="M279.58,208.75c29.07-14.63,64.51.84,73.05,32.25,5.37,19.74,8.69,39.45,9.68,58.15,1.78,33.38-4.38,59.48-16.49,69.82-13.27,11.34-44.44,13.97-57.75,15.09-23.33,1.97-47.53-1.08-70-8.82-43.09-14.85-77.78-45.52-97.68-86.36l159.18-80.13Z"
-            />
-          </g>
-
-          {/* Eye */}
-          <g data-duck="eye">
-            <circle fill="var(--duck-eye)" cx="437.18" cy="112.5" r="27" />
-            <g clipPath="url(#duck-eye-clip)">
-              <ellipse
-                fill="var(--duck-body)"
-                cx="410.77"
-                cy="95.77"
-                rx="40.5"
-                ry="22.5"
-                transform="translate(52.59 318.51) rotate(-45)"
-              />
-            </g>
-          </g>
-
-          {/* Beak */}
-          <g data-duck="beak">
-            <rect
-              fill="var(--duck-beak)"
-              x="495.68"
-              y="98.19"
-              width="54"
-              height="117"
-              rx="27"
-              ry="27"
-              transform="translate(424.95 -380.14) rotate(62.99)"
-            />
-            <g clipPath="url(#duck-beak-clip)">
+            <g clipPath="url(#duck-clip-foot)">
               <rect
-                fill="#fff"
-                opacity="0.25"
-                x="491.23"
-                y="123.19"
-                width="81.9"
+                fill="var(--duck-highlight)"
+                opacity={0.12}
+                x="467.84"
+                y="286.99"
+                width="126"
                 height="27"
                 rx="13.5"
                 ry="13.5"
-                transform="translate(-4.04 256.55) rotate(-27.01)"
+                transform="translate(-57 463.37) rotate(-45)"
               />
             </g>
           </g>
 
-          {/* Extension rects — grown tall to bridge duck → canopy */}
-          <rect
-            fill="var(--umbrella-pole-soft)"
-            x={372.42}
-            y={1010.46}
-            width={8.56}
-            height={480}
-          />
-          <rect
-            fill="var(--umbrella-pole)"
-            x={363.86}
-            y={1010.46}
-            width={8.56}
-            height={480}
-          />
+          <g>
+            {/* Back wing */}
+            <g id="duck-wing-back">
+              <path
+                fill="var(--duck-body-dark)"
+                d="M203.07,266.6c35.34,12.02,175.91,69.19,214.8-35.55,25.03-67.41-38.38-129.35-139.62-166.94C153.79,17.9,25.69,123.95.63,191.44c-2.62,6.92-.05-.02,67.44,25.04,33.75,12.53,134.99,50.12,134.99,50.12Z"
+              />
+            </g>
 
-          {/* Stick upper (handle → extension) */}
-          <path
-            fill="var(--umbrella-pole-soft)"
-            d="M380.98,1010.46v-179.61c0-4.71-3.85-8.56-8.56-8.56h0c-4.71,0-8.56,3.85-8.56,8.56v179.61"
-          />
-          <path
-            fill="var(--umbrella-pole)"
-            d="M372.42,1010.46v-179.61c0-3.14,1.74-5.88,4.28-7.36-1.26-.74-2.71-1.2-4.28-1.2h0c-4.71,0-8.56,3.85-8.56,8.56v179.61"
-          />
-
-          {/* Umbrella handle */}
-          <g data-duck="handle">
+            {/* Body */}
             <path
-              fill="var(--umbrella-deep)"
-              d="M354.04,834.5s31.1,6.94,38.05-5.58c5.56-13.9,3.55-60.79,3.55-70.52,0-9.73,2.86-34.32-12.51-56.84-25.96-38.01-107.39-29.58-116.81,14.84-6.09,18.77,9.87,47.26,32.45,32.91,54.7-34.77,44.15,75.46,55.28,85.19Z"
+              id="duck-body"
+              fill="var(--duck-body)"
+              d="M131.09,517.02c-28.23-28.23-50.91-101.82,76.37-229.1,76.37-76.37,58.9-93.84,0-152.73-38.18-38.18-25.46-76.37,0-101.82,25.46-25.46,63.64-38.18,101.82,0,16.81,16.81,5.56,5.56,50.91,50.91,51.39,51.39,63.64,38.18,114.55,89.1,76.84,76.84,12.73,190.92-25.45,229.1-63.64,63.64-114.55,114.55-146.37,82.73-19.09-19.09-25.45-25.46-44.55-44.55-16.86-16.86-50.91,0-76.37,25.46-50.91,50.91-44.55,57.28-50.91,50.91Z"
+            />
+
+            {/* Body highlight */}
+            <path
+              fill="var(--duck-highlight)"
+              opacity={0.06}
+              d="M495.66,239.23c-2.38.45-4.67-1.06-5.22-3.42-4.33-18.46-13.72-35.01-27.96-49.24-23.84-23.84-38.38-32.58-53.77-41.84-16.69-10.04-33.94-20.41-61.25-47.73l-47.73-47.73c-1.76-1.76-1.76-4.61,0-6.36h0c1.76-1.76,4.61-1.76,6.36,0l47.73,47.73c26.53,26.53,43.31,36.62,59.53,46.38,15.88,9.55,30.88,18.58,55.5,43.19,15.45,15.45,25.65,33.46,30.36,53.59.58,2.48-1.05,4.95-3.55,5.43h0Z"
+            />
+
+            <g>
+              {/* Front wing */}
+              <g id="duck-wing-front">
+                <path
+                  fill="var(--duck-body-soft)"
+                  d="M228.46,338.65c37.32-1.03,189,3.73,189-108,0-71.91-81-108-189-108-132.76,0-216,144-216,216-.05,7.4,0,0,72,0,36,0,144,0,144,0Z"
+                />
+                {/* Belly highlight */}
+                <g opacity={0.06}>
+                  <path
+                    fill="var(--duck-highlight)"
+                    d="M143.07,154.82c27.02-14.93,55.75-22.5,85.4-22.5,53.72,0,98.94,8.97,130.77,25.93,32.67,17.41,49.23,41.97,49.23,72.98,0,41.21-289.36-63.17-265.4-76.41Z"
+                  />
+                </g>
+              </g>
+            </g>
+
+            {/* Beak */}
+            <g id="duck-beak">
+              <rect
+                fill="var(--duck-beak)"
+                x="320.46"
+                y="-7.91"
+                width="54"
+                height="108"
+                rx="27"
+                ry="27"
+                transform="translate(134.36 -232.19) rotate(45)"
+              />
+              <g clipPath="url(#duck-clip-beak)">
+                <path
+                  fill="var(--duck-highlight)"
+                  opacity={0.12}
+                  d="M385.64,7.91l-41.37,41.37c-5.27,5.27-13.82,5.27-19.09,0h0c-5.27-5.27-5.27-13.82,0-19.09l41.37-41.37,19.09,19.09Z"
+                />
+              </g>
+            </g>
+
+            {/* Eye */}
+            <path
+              id="duck-eye"
+              fill="var(--duck-eye)"
+              d="M239.7,41.15h0c13.19-6.75,29.59-1.45,36.33,11.74,6.75,13.19,1.45,29.59-11.74,36.33-8.58,4.39-18.88,3.86-26.97-1.37h0c9.08-14.03,9.98-31.83,2.37-46.7Z"
+            />
+          </g>
+
+          {/* Standing leg with bands */}
+          <g id="duck-leg-front">
+            <path
+              fill="var(--duck-body)"
+              d="M366.79,384.01h54c0,36.44,0,61.7,0,99-18,0-36,0-54,0,0-36.79,0-62.05,0-99Z"
             />
             <path
-              fill="var(--umbrella)"
-              d="M365.6,823.34s-7.01-78.4-22.78-91.54c-15.77-13.14-51.24-7.88-62.19,8.76-6.57,2.63-11.82-13.58,14.45-27.16,26.28-13.58,58.69-9.63,67.01,21.9,8.32,31.53,8.32,98.98,3.5,88.03Z"
+              fill="var(--umbrella-pole-soft)"
+              d="M357.79,465.01h72c4.97,0,9,4.03,9,9h-90c0-4.97,4.03-9,9-9Z"
             />
+            <path
+              fill="var(--umbrella-pole)"
+              d="M348.79,456.01h90c0,4.97-4.03,9-9,9h-72c-4.97,0-9-4.03-9-9h0Z"
+            />
+            <path
+              fill="var(--umbrella-pole)"
+              d="M348.79,474.01h90c0,4.97-4.03,9-9,9h-72c-4.97,0-9-4.03-9-9h0Z"
+            />
+            <path
+              fill="var(--umbrella-pole-soft)"
+              d="M357.79,447.01h72c4.97,0,9,4.03,9,9h-90c0-4.97,4.03-9,9-9Z"
+            />
+
+            {/* Standing foot */}
+            <g id="duck-foot-2">
+              <path
+                fill="var(--duck-feet)"
+                d="M330.79,510.01c0-18,9-27,27-27,27,0,126,0,126,0,18,0,27,9,27,27s-9,27-27,27h-126c-18,0-27-9-27-27Z"
+              />
+              <g clipPath="url(#duck-clip-foot2)">
+                <rect
+                  fill="var(--duck-highlight)"
+                  opacity={0.12}
+                  x="384.79"
+                  y="483.01"
+                  width="126"
+                  height="27"
+                  rx="13.5"
+                  ry="13.5"
+                />
+              </g>
+            </g>
+
+            {/* Leg highlight */}
+            <g opacity={0.06}>
+              <path
+                fill="var(--duck-highlight)"
+                d="M411.79,483.01v-103.5c0-2.49,2.01-4.5,4.5-4.5h0c2.49,0,4.5,2.01,4.5,4.5v103.5s-9,0-9,0Z"
+              />
+            </g>
           </g>
         </svg>
       </div>
 
-      {/* ── Text content (headline + subtitle) ── */}
-      <div className="relative z-10 flex flex-col items-center">{children}</div>
+      {/* ── Text content ── */}
+      <div className="relative z-10 flex max-w-lg flex-col items-center px-4">
+        {children}
+      </div>
 
       {/* ── Umbrella canopy ── */}
-      <div ref={canopyRef} className="relative z-10 mt-4" aria-hidden="true">
+      <div
+        ref={canopyRef}
+        className="relative grid w-40 sm:w-56 md:w-70"
+        style={{ overflow: "visible" }}
+        aria-hidden="true"
+      >
+        {/* Pole (between canopy layers) */}
+        <div
+          ref={poleRef}
+          className="absolute left-1/2 -translate-x-1/2 rounded-sm"
+          style={{
+            width: 4,
+            background: "var(--umbrella-pole)",
+            zIndex: 5,
+          }}
+        />
+
+        {/* Canopy dome — in front of pole */}
         <svg
-          viewBox="0 1160 738.86 360"
-          width="240"
+          viewBox="0 0 754 537.01"
           fill="none"
-          style={{ isolation: "isolate" }}
+          className="w-full"
+          style={{ gridArea: "1/1", isolation: "isolate", zIndex: 10 }}
         >
-          {/* Canopy front (scalloped edge — painted first, background) */}
-          <path
-            fill="var(--umbrella-deep)"
-            d="M738.86,1221.29s-77.77,17.94-106.77-32.53c0,0-84.39,36.24-144.53-20.71,0,0-77.92,62.12-164.91,0,0,0-52.23,66.18-146.74,18.3,0,0-42.9,38.65-110.56,19.24,0,0-15.44,39.09-59.8,31.84l121.02,118.29s170.76,11.65,178.27,14.24c7.52,2.59,155.72,5.18,172.9,5.18s106.32-11.65,120.28-19.41c13.96-7.77,79.47-55.65,79.47-55.65l34.37-10.35s27.15-33.3,27-68.42Z"
-          />
-          <path
-            fill="var(--umbrella-stripe)"
-            d="M453.99,1374.84c19.39-46.45,34.34-112.82,33.57-206.79,0,0-77.92,62.12-164.91,0,0,0,4.43,92.44,25.41,204.36,33.36,1.09,78.22,2,105.93,2.43Z"
-          />
-          <path
-            fill="var(--umbrella-stripe)"
-            d="M65.35,1205.58c25.25,65.08,57.22,114.56,90.92,152.2,28.34,1.99,71.43,5.09,103.96,7.73-68.48-93.03-84.32-179.16-84.32-179.16,0,0-42.9,38.65-110.56,19.24Z"
-          />
-          <path
-            fill="var(--umbrella-stripe)"
-            d="M598.02,1355.72c13.96-7.77,79.47-55.65,79.47-55.65l34.37-10.35s27.15-33.3,27-68.42c0,0-77.77,17.94-106.77-32.53,0,0-24.36,96.87-85.71,178.47,23.53-3.67,45.32-7.99,51.65-11.51Z"
-          />
-          {/* Canopy shadow */}
-          <path
-            fill="#000"
-            opacity="0.15"
-            style={{ mixBlendMode: "multiply" }}
-            d="M5.55,1237.42l121.02,118.29s170.76,11.65,178.27,14.24c7.52,2.59,155.72,5.18,172.9,5.18s106.32-11.65,120.28-19.41c13.96-7.77,79.47-55.65,79.47-55.65l34.37-10.35s16.92-20.77,23.97-46.79c.54-11.97,1-19.68,1.39-21.24.43-.02,1.12-.06,1.63-.09,0-.01,0-.02,0-.03-.36.02-.88.04-1.62.08h0c-.1.02-.17.03-.27.05.05,0,.11,0,.19,0-19.9,11.98-73.79,54.19-171.47,8.19,0,0-77.54,42.42-193.86,8.75,0,0-108.56,33.24-180.93-8,0,0-87.1,54.92-181.7,8.64-1.97.32-1.93-.37-1.15-1.5-.83-.11-1.65-.2-2.49-.33Z"
-          />
+          <g id="duck-canopy-back">
+            <path
+              fill="var(--umbrella)"
+              d="M570.48,207.91s-77.54,84.85-193.86,17.5c0,0-108.56,66.47-180.93-16.01,0,0-86.42,68.08-185.35-25.86,11.96,133.55,171.36,239.29,366.28,239.29,202.71,0,367.03-114.36,367.03-255.43,0,0-25.85,96.56-173.18,40.5Z"
+            />
+            <path
+              fill="var(--umbrella-stripe-soft)"
+              d="M376.62,422.84c173.99-1.74,193.86-214.93,193.86-214.93,0,0-77.54,84.85-193.86,17.5,0,0,10.34,119.3,0,197.43Z"
+            />
+            <path
+              fill="var(--umbrella-stripe-soft)"
+              d="M10.34,183.54c11.78,131.47,166.43,235.99,357.2,239.22-34.79-1.71-158.32-21.37-171.85-213.36,0,0-86.42,68.08-185.35-25.86Z"
+            />
+          </g>
 
-          {/* Stick lower (pole between canopy layers) */}
-          <path
-            fill="var(--umbrella-pole-soft)"
-            d="M363.86,1037.46v430.12c0,4.71,3.36,40.64,8.07,40.64h0c4.71,0,9.05-35.93,9.05-40.64v-430.12"
-          />
-          <path
-            fill="var(--umbrella-pole)"
-            d="M363.86,1037.46v430.12c0,4.71,3.36,40.64,8.07,40.64h0c1.56,0,1.46-16.16.98-24.66-2.55-25.11-.49-12.82-.49-15.97v-430.12"
-          />
-
-          {/* Canopy back (dome — painted last, foreground) */}
-          <path
-            fill="var(--umbrella)"
-            d="M565.68,1261.79s-77.54,84.85-193.86,17.5c0,0-108.56,66.47-180.93-16.01,0,0-86.42,68.08-185.35-25.86,11.96,133.55,171.36,239.29,366.28,239.29s367.03-114.36,367.03-255.43c0,0-25.85,96.56-173.18,40.5Z"
-          />
-          <path
-            fill="var(--umbrella-stripe-soft)"
-            d="M371.83,1476.72c173.99-1.74,193.86-214.93,193.86-214.93,0,0-77.54,84.85-193.86,17.5,0,0,10.34,119.3,0,197.43Z"
-          />
-          <path
-            fill="var(--umbrella-stripe-soft)"
-            d="M5.55,1237.42c11.78,131.47,166.43,235.99,357.19,239.22-34.79-1.71-158.32-21.37-171.85-213.36,0,0-86.42,68.08-185.35-25.86Z"
-          />
           {/* Decorative bands */}
           <path
-            fill="#fff"
-            opacity="0.1"
-            d="M370.95,1371.07c-92.71,0-179.71,12.13-254.95,33.34,66.1,44.74,156.33,72.3,255.82,72.3s189.25-27.42,255.32-71.95c-75.52-21.44-162.97-33.7-256.19-33.7Z"
+            fill="var(--duck-highlight)"
+            opacity={0.1}
+            d="M375.75,317.19c-92.71,0-179.71,12.13-254.95,33.35,66.1,44.74,156.33,72.3,255.82,72.3,99.23,0,189.25-27.42,255.32-71.95-75.52-21.44-162.97-33.7-256.19-33.7Z"
           />
           <path
-            fill="#fff"
-            opacity="0.1"
-            d="M371.22,1440.46c-56.97,0-109.57,4.9-152.06,13.17,46.49,14.82,98.19,23.09,152.67,23.09s105.84-8.21,152.21-22.94c-42.62-8.36-95.51-13.32-152.82-13.32Z"
+            fill="var(--duck-highlight)"
+            opacity={0.1}
+            d="M376.02,386.58c-56.97,0-109.57,4.9-152.06,13.17,46.49,14.82,98.19,23.09,152.67,23.09,54.3,0,105.84-8.21,152.21-22.94-42.62-8.36-95.51-13.32-152.82-13.32Z"
           />
+        </svg>
+
+        {/* Canopy scalloped edge — behind pole */}
+        <svg
+          viewBox="0 0 754 537.01"
+          fill="none"
+          className="w-full"
+          style={{ gridArea: "1/1", isolation: "isolate", zIndex: 2 }}
+        >
+          <g id="duck-canopy-front">
+            <path
+              fill="var(--umbrella-deep)"
+              d="M743.66,167.41s-77.77,17.94-106.77-32.53c0,0-84.39,36.24-144.53-20.71,0,0-77.92,62.12-164.91,0,0,0-52.23,66.18-146.74,18.3,0,0-42.9,38.65-110.56,19.24,0,0-15.44,39.09-59.8,31.84l121.02,118.29s170.76,11.65,178.27,14.24c7.52,2.59,155.72,5.18,172.9,5.18,17.18,0,106.32-11.65,120.28-19.41,13.96-7.77,79.47-55.65,79.47-55.65l34.37-10.35s27.15-33.3,27-68.42Z"
+            />
+            <path
+              fill="var(--umbrella-stripe)"
+              d="M458.79,320.96c19.39-46.45,34.34-112.82,33.57-206.79,0,0-77.92,62.12-164.91,0,0,0,4.43,92.44,25.42,204.36,33.36,1.09,78.22,2,105.93,2.43Z"
+            />
+            <path
+              fill="var(--umbrella-stripe)"
+              d="M70.15,151.7c25.25,65.08,57.22,114.56,90.92,152.2,28.34,1.99,71.43,5.09,103.96,7.73-68.48-93.03-84.32-179.16-84.32-179.16,0,0-42.9,38.65-110.56,19.24Z"
+            />
+            <path
+              fill="var(--umbrella-stripe)"
+              d="M602.82,301.84c13.96-7.77,79.47-55.65,79.47-55.65l34.37-10.35s27.15-33.3,27-68.42c0,0-77.77,17.94-106.77-32.53,0,0-24.36,96.87-85.71,178.47,23.53-3.67,45.32-7.99,51.65-11.51Z"
+            />
+            <path
+              fill="var(--duck-shadow)"
+              opacity={0.15}
+              style={{ mixBlendMode: "multiply" }}
+              d="M10.34,183.54l121.02,118.29s170.76,11.65,178.27,14.24c7.52,2.59,155.72,5.18,172.9,5.18,17.18,0,106.32-11.65,120.28-19.41,13.96-7.77,79.47-55.65,79.47-55.65l34.37-10.35s16.92-20.77,23.97-46.79c.54-11.97,1-19.68,1.39-21.24.43-.02,1.12-.06,1.63-.09,0-.01,0-.02,0-.03-.36.02-.88.04-1.62.08h0c-.1.02-.17.03-.27.05.05,0,.11,0,.19,0-19.9,11.98-73.79,54.19-171.47,8.19,0,0-77.54,42.42-193.86,8.75,0,0-108.56,33.24-180.93-8,0,0-87.1,54.92-181.7,8.64-1.97.32-1.93-.37-1.15-1.5-.83-.11-1.65-.2-2.49-.33Z"
+            />
+          </g>
         </svg>
       </div>
     </div>

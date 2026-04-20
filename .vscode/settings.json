@@ -46,5 +46,8 @@
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": "explicit"
     }
+  },
+  "[svg]": {
+    "editor.defaultFormatter": "jock.svg"
   }
 }

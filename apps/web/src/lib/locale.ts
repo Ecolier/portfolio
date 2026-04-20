@@ -1,4 +1,4 @@
-import type { Locale } from "../functions/getGlobals";
+export type Locale = "en" | "fr";
 
 export const SUPPORTED_LOCALES: Locale[] = ["en", "fr"];
 export const DEFAULT_LOCALE: Locale = "en";
@@ -20,13 +20,6 @@ export function ogLocaleAlternates(locale: Locale): string[] {
   return SUPPORTED_LOCALES.filter((l) => l !== locale).map(
     (l) => OG_LOCALE_MAP[l],
   );
-}
-
-export function resolveLocale(param: string | undefined): Locale {
-  if (param && SUPPORTED_LOCALES.includes(param as Locale)) {
-    return param as Locale;
-  }
-  return DEFAULT_LOCALE;
 }
 
 /** Prefix a path with the locale segment (no prefix for the default locale). */

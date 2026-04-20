@@ -3,20 +3,18 @@ import {
   Outlet,
   redirect,
   useLocation,
-  useRouter,
 } from "@tanstack/react-router";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import Header from "@/components/Header";
 import { getSiteSettings } from "@/functions/getGlobals";
-import type { Locale } from "@/functions/getGlobals";
+import type { Locale } from "@/lib/locale";
 import { detectPreferredLocale } from "@/functions/detectLocale";
 import {
   SUPPORTED_LOCALES,
   DEFAULT_LOCALE,
-  LOCALE_COOKIE,
-  localePath,
   stripLocalePrefix,
 } from "@/lib/locale";
+import { useLangSwitch } from "@/hooks/useLangSwitch";
 
 export const Route = createFileRoute("/{-$locale}")({
   beforeLoad: async ({ params, location }) => {
@@ -52,7 +50,7 @@ export const Route = createFileRoute("/{-$locale}")({
   },
 
   loader: async ({ context }) => {
-    const locale = (context as { locale: Locale }).locale;
+    const locale = context.locale;
     return getSiteSettings({ data: locale });
   },
 
@@ -61,7 +59,7 @@ export const Route = createFileRoute("/{-$locale}")({
 
 function LocaleLayout() {
   const siteSettings = Route.useLoaderData();
-  const { locale } = Route.useRouteContext() as { locale: Locale };
+  const { locale } = Route.useRouteContext();
   const { pathname } = useLocation();
 
   // Keep <html lang> in sync on every navigation
@@ -69,19 +67,7 @@ function LocaleLayout() {
     document.documentElement.lang = locale;
   }, [locale]);
 
-  const router = useRouter();
-  const targetLocale: Locale = locale === DEFAULT_LOCALE ? "fr" : "en";
-  const basePath = stripLocalePrefix(pathname);
-  const switchHref = localePath(basePath, targetLocale);
-
-  const handleLangSwitch = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      document.cookie = `${LOCALE_COOKIE}=${targetLocale}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax`;
-      router.navigate({ href: switchHref, resetScroll: false });
-    },
-    [router, switchHref, targetLocale],
-  );
+  const { switchHref, handleLangSwitch } = useLangSwitch(locale, pathname);
 
   return (
     <>
@@ -97,7 +83,7 @@ function LocaleLayout() {
       </div>
       <footer className="site-footer py-6 text-center text-xs text-(--sea-ink-soft) backdrop-blur-sm">
         <div className="page-wrap flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
-          <span>© {new Date().getFullYear()} Evan Gruère</span>
+          <span>© 🦆 & {new Date().getFullYear()} Evan Gruère</span>
           <div className="flex items-center gap-3">
             {/* Language switcher — mobile only (desktop version is in the header) */}
             <a

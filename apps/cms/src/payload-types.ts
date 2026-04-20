@@ -441,7 +441,30 @@ export interface HomePage {
 export interface AboutPage {
   id: string;
   heading: string;
+  /**
+   * A personal photo or avatar.
+   */
+  photo?: (string | null) | Media;
+  /**
+   * Short personal story — why you build things, what drives you.
+   */
   body: string;
+  /**
+   * What you are working on or learning right now.
+   */
+  currentFocus?: string | null;
+  /**
+   * Tools and languages you enjoy — prose, not a wall of logos.
+   */
+  techIdentity?: string | null;
+  /**
+   * Outside-of-code hobbies and interests.
+   */
+  interests?: string | null;
+  /**
+   * What you are open to — freelance, collaboration, etc.
+   */
+  contactNote?: string | null;
   /**
    * Page title for SEO. Falls back to "heading — site title".
    */
@@ -503,7 +526,12 @@ export interface HomePageSelect<T extends boolean = true> {
  */
 export interface AboutPageSelect<T extends boolean = true> {
   heading?: T;
+  photo?: T;
   body?: T;
+  currentFocus?: T;
+  techIdentity?: T;
+  interests?: T;
+  contactNote?: T;
   metaTitle?: T;
   metaDescription?: T;
   updatedAt?: T;

@@ -1,7 +1,7 @@
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { getProject } from "@/functions/getProjects";
-import type { Locale } from "@/functions/getGlobals";
+import type { Locale } from "@/lib/locale";
 import {
   localePath,
   hreflangLinks,
@@ -9,25 +9,15 @@ import {
   ogLocale,
   ogLocaleAlternates,
 } from "@/lib/locale";
-import { fluidState } from "@/components/TrippyPlane";
 
 const localeRoute = getRouteApi("/{-$locale}");
-
-const PHASE_BG = [
-  "var(--phase-a-bg)",
-  "var(--phase-b-bg)",
-  "var(--phase-c-bg)",
-];
 
 export const Route = createFileRoute("/{-$locale}/projects/$slug")({
   component: ProjectDetail,
   loader: ({ params, context }) => {
-    const locale = (context as { locale: Locale }).locale;
+    const locale = context.locale;
     return getProject({ data: { slug: params.slug, locale } });
   },
-  validateSearch: (search: Record<string, unknown>) => ({
-    phase: Number(search.phase) || 0,
-  }),
   headers: () => ({
     "Cache-Control":
       "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
@@ -127,17 +117,8 @@ export const Route = createFileRoute("/{-$locale}/projects/$slug")({
 
 function ProjectDetail() {
   const project = Route.useLoaderData();
-  const { phase } = Route.useSearch();
   const siteSettings = localeRoute.useLoaderData();
-  const { locale } = Route.useRouteContext() as { locale: Locale };
-  const bg = PHASE_BG[phase % 3];
-
-  useEffect(() => {
-    fluidState.targetScale = 0.6;
-    return () => {
-      fluidState.targetScale = 1.0;
-    };
-  }, []);
+  const { locale } = Route.useRouteContext();
 
   return (
     <main className="flex flex-1 flex-col">
@@ -147,31 +128,16 @@ function ProjectDetail() {
           hash="projects"
           className="mb-8 inline-flex items-center gap-1.5 text-sm text-(--sea-ink-soft) no-underline transition hover:text-(--sea-ink)"
         >
-          <svg
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            width="16"
-            height="16"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <ArrowLeft size={16} aria-hidden="true" />
           {siteSettings.ui.ctaBackToProjects}
         </Link>
 
-        <article
-          className="rounded-2xl border border-(--line) p-6 sm:p-10"
-          style={{ backgroundColor: bg }}
-        >
+        <article className="rounded-2xl border border-(--line) bg-(--surface) p-6 sm:p-10">
           {project.company && (
             <p className="island-kicker mb-2">{project.company}</p>
           )}
 
-          <h1 className="display-title mb-4 text-3xl font-bold text-(--sea-ink) sm:text-5xl">
+          <h1 className="font-display mb-4 text-3xl font-bold text-(--sea-ink) sm:text-5xl">
             {project.name}
           </h1>
 
@@ -225,21 +191,7 @@ function ProjectDetail() {
                 rel="noreferrer"
                 className="fluid-cta inline-flex items-center gap-2 rounded-full border border-(--chip-line) px-4 py-2 text-sm text-(--sea-ink) no-underline transition hover:bg-(--link-bg-hover)"
               >
-                <svg
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  aria-hidden="true"
-                  width="16"
-                  height="16"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.5"
-                    d="M5.5 14.5 14.5 5.5M14.5 5.5H8M14.5 5.5V12"
-                  />
-                </svg>
+                <ArrowUpRight size={16} aria-hidden="true" />
                 {siteSettings.ui.ctaWebsite}
               </a>
             )}

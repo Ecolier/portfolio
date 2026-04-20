@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Canvas } from "@react-three/fiber";
 import { getProjects } from "@/functions/getProjects";
 import { getHomePage, getSiteSettings } from "@/functions/getGlobals";
-import type { Locale } from "@/functions/getGlobals";
+import type { Locale } from "@/lib/locale";
 import {
   localePath,
   hreflangLinks,
@@ -11,13 +12,14 @@ import {
   ogLocaleAlternates,
 } from "@/lib/locale";
 import { useFluidTransition } from "@/hooks/useFluidTransition";
-import { windState } from "@/components/TrippyPlane";
+import { ArrowDown, ArrowUpRight } from "lucide-react";
+import TrippyPlane, { windState } from "@/components/TrippyPlane";
 import DuckMascot from "@/components/DuckMascot";
 
 export const Route = createFileRoute("/{-$locale}/")({
   component: Home,
   loader: async ({ context }) => {
-    const locale = (context as { locale: Locale }).locale;
+    const locale = context.locale;
     const [projects, homePage, siteSettings] = await Promise.all([
       getProjects({ data: locale }),
       getHomePage({ data: locale }),
@@ -67,36 +69,66 @@ export const Route = createFileRoute("/{-$locale}/")({
 
 function Home() {
   const { projects, homePage, siteSettings } = Route.useLoaderData();
-  const { locale } = Route.useRouteContext() as { locale: Locale };
+  const { locale } = Route.useRouteContext();
   const sectionsRef = useRef<HTMLElement[]>([]);
   const canopyRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
   const navigateWithTransition = useFluidTransition();
+  const [showCanvas, setShowCanvas] = useState(false);
 
-  // ── Measure umbrella canopy for wind-tunnel obstacle deflection ──
   useEffect(() => {
+    const isBot = /bot|crawl|spider|slurp|googlebot|bingbot|yandex/i.test(
+      navigator.userAgent,
+    );
+    if (!isBot) setShowCanvas(true);
+  }, []);
+
+  // ── Measure umbrella canopy relative to hero section ──
+  useEffect(() => {
+    let raf = 0;
     function measure() {
       const el = canopyRef.current;
-      if (!el) {
+      const hero = heroRef.current;
+      if (!el || !hero) {
         windState.obstacles = [];
-        return;
+      } else {
+        const cr = el.getBoundingClientRect();
+        const hr = hero.getBoundingClientRect();
+        windState.obstacles = [
+          {
+            x: (cr.left + cr.width / 2 - hr.left) / hr.width,
+            y: 1 - (cr.top + cr.height / 2 - hr.top) / hr.height,
+            w: cr.width / 2 / hr.width,
+            h: cr.height / 2 / hr.height,
+          },
+        ];
       }
-      const r = el.getBoundingClientRect();
-      windState.obstacles = [
-        {
-          x: (r.left + r.width / 2) / window.innerWidth,
-          y: 1 - (r.top + r.height / 2) / window.innerHeight,
-          w: r.width / 2 / window.innerWidth,
-          h: r.height / 2 / window.innerHeight,
-        },
-      ];
+      raf = requestAnimationFrame(measure);
     }
-    measure();
-    window.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("resize", measure);
+    raf = requestAnimationFrame(measure);
     return () => {
-      window.removeEventListener("scroll", measure);
-      window.removeEventListener("resize", measure);
+      cancelAnimationFrame(raf);
       windState.obstacles = [];
+    };
+  }, []);
+
+  // ── Toggle header CTA visibility based on hero intersection ──
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        document.documentElement.toggleAttribute(
+          "data-hero-visible",
+          entry.isIntersecting,
+        );
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      document.documentElement.removeAttribute("data-hero-visible");
     };
   }, []);
 
@@ -145,21 +177,48 @@ function Home() {
     <main className="flex-1">
       {/* ── Hero ── */}
       <section
-        className="grid snap-start grid-rows-[minmax(0,1fr)_auto] items-center justify-items-center px-4"
+        ref={heroRef}
+        className="relative grid snap-start grid-rows-[minmax(0,1fr)_auto] items-center justify-items-center px-4"
         style={{ height: "calc(100svh - var(--header-h))" }}
       >
-        <div className="flex min-h-0 flex-col items-center">
+        {showCanvas && (
+          <div className="pointer-events-none absolute inset-0 z-0">
+            <Canvas
+              camera={{ position: [0, 3, 12], fov: 55, near: 0.1, far: 200 }}
+              gl={{ alpha: true }}
+              style={{
+                width: "100%",
+                height: "100%",
+                background: "transparent",
+                pointerEvents: "none",
+              }}
+              onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+            >
+              <TrippyPlane />
+            </Canvas>
+          </div>
+        )}
+        <div className="relative z-10 flex min-h-0 flex-col items-center">
           <DuckMascot canopyRef={canopyRef}>
-            <h1 className="display-title rise-in text-center text-4xl font-bold text-(--sea-ink) drop-shadow-[0_2px_12px_rgba(0,0,0,0.06)] sm:text-6xl md:text-7xl">
+            <h1 className="font-display animate-rise-in whitespace-pre-wrap text-center text-4xl font-bold text-(--sea-ink) drop-shadow-[0_2px_12px_rgba(0,0,0,0.06)] sm:text-6xl md:text-7xl">
               {homePage.headline}
             </h1>
             {homePage.subtitle && (
               <p
-                className="rise-in mt-4 max-w-xl text-center text-base text-(--sea-ink-soft) sm:text-lg"
-                style={{ animationDelay: "200ms" }}
+                className="animate-rise-in mt-3 whitespace-pre-wrap text-center text-base text-(--sea-ink-soft) sm:text-lg"
+                style={{ animationDelay: "120ms" }}
               >
                 {homePage.subtitle}
               </p>
+            )}
+            {siteSettings.contactEmail && (
+              <a
+                href={`mailto:${siteSettings.contactEmail}`}
+                className="animate-rise-in mt-6 inline-block rounded-full border border-(--line) bg-(--surface) px-6 py-2.5 text-sm font-semibold text-(--sea-ink) no-underline shadow-sm backdrop-blur-sm transition hover:bg-(--surface-strong) sm:text-base"
+                style={{ animationDelay: "200ms" }}
+              >
+                {siteSettings.ui.ctaContact}
+              </a>
             )}
           </DuckMascot>
         </div>
@@ -168,7 +227,7 @@ function Home() {
         <button
           type="button"
           ref={cueRef}
-          className="rise-in mb-8 flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-(--sea-ink-soft) transition-opacity duration-500"
+          className="animate-rise-in relative z-10 mb-8 flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-(--sea-ink-soft) transition-opacity duration-500"
           style={{ animationDelay: "600ms" }}
           onClick={() =>
             document
@@ -179,20 +238,7 @@ function Home() {
           <span className="text-xs uppercase tracking-widest">
             {siteSettings.ui.navProjects}
           </span>
-          <svg
-            className="animate-bounce"
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <ArrowDown size={20} className="animate-bounce" aria-hidden="true" />
         </button>
       </section>
 
@@ -205,107 +251,93 @@ function Home() {
           }}
           data-project-idx={i}
           id={i === 0 ? "projects" : undefined}
-          className="project-section relative flex min-h-svh snap-start flex-col justify-end px-4 pb-20 pt-24"
+          className="project-section relative flex min-h-svh snap-start flex-col items-center justify-center px-4 py-24"
         >
-          {/* Cover image background */}
-          {project.coverImage && (
-            <img
-              src={project.coverImage.url}
-              alt=""
-              className="project-cover absolute inset-0 h-full w-full object-cover"
-            />
-          )}
-
-          {/* Gradient overlay for legibility */}
-          <div className="project-overlay absolute inset-0" />
-
-          {/* Content panel */}
+          {/* Content card */}
           <div className="page-wrap project-content relative z-10">
-            {project.company && (
-              <p className="island-kicker mb-2">{project.company}</p>
-            )}
-            <h2 className="display-title text-3xl font-bold text-(--sea-ink) sm:text-5xl md:text-6xl">
-              {project.name}
-            </h2>
-            {project.description && (
-              <p className="mt-3 max-w-2xl text-base leading-relaxed text-(--sea-ink-soft) sm:text-lg">
-                {project.description}
-              </p>
-            )}
-            {project.keywords.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                {project.keywords.map((kw) => (
-                  <span
-                    key={kw}
-                    className="rounded-full border border-(--chip-line) bg-(--chip-bg) px-2.5 py-0.5 text-xs text-(--sea-ink-soft) backdrop-blur-sm"
+            <div className="overflow-hidden rounded-2xl border border-(--line) bg-(--surface) backdrop-blur-sm">
+              {/* Contained cover image */}
+              {project.coverImage && (
+                <div className="project-cover-wrap">
+                  <img
+                    src={project.coverImage.url}
+                    alt=""
+                    className="project-cover aspect-[16/9] w-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Text content */}
+              <div className="p-6 sm:p-8 md:p-10">
+                {project.company && (
+                  <p className="island-kicker mb-2">{project.company}</p>
+                )}
+                <h2 className="font-display text-3xl font-bold text-(--sea-ink) sm:text-5xl md:text-6xl">
+                  {project.name}
+                </h2>
+                {project.description && (
+                  <p className="mt-3 max-w-2xl text-base leading-relaxed text-(--sea-ink-soft) sm:text-lg">
+                    {project.description}
+                  </p>
+                )}
+                {project.keywords.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {project.keywords.map((kw) => (
+                      <span
+                        key={kw}
+                        className="rounded-full border border-(--chip-line) bg-(--chip-bg) px-2.5 py-0.5 text-xs text-(--sea-ink-soft) backdrop-blur-sm"
+                      >
+                        {kw}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-6 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigateWithTransition(
+                        localePath(`/projects/${project.slug}`, locale),
+                      )
+                    }
+                    className="fluid-cta rounded-xl border px-5 py-2.5 text-sm font-semibold text-(--sea-ink)"
                   >
-                    {kw}
-                  </span>
-                ))}
+                    {siteSettings.ui.ctaViewProjects} →
+                  </button>
+                  {project.repository && (
+                    <a
+                      href={project.repository}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-lg p-2 text-(--sea-ink-soft) transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
+                    >
+                      <span className="sr-only">Source code</span>
+                      <svg
+                        viewBox="0 0 16 16"
+                        aria-hidden="true"
+                        width="18"
+                        height="18"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+                        />
+                      </svg>
+                    </a>
+                  )}
+                  {project.website && (
+                    <a
+                      href={project.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-lg p-2 text-(--sea-ink-soft) transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
+                    >
+                      <span className="sr-only">Visit website</span>
+                      <ArrowUpRight size={18} aria-hidden="true" />
+                    </a>
+                  )}
+                </div>
               </div>
-            )}
-            <div className="mt-6 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() =>
-                  navigateWithTransition(
-                    localePath(
-                      `/projects/${project.slug}?phase=${i % 3}`,
-                      locale,
-                    ),
-                    i % 3,
-                  )
-                }
-                className="fluid-cta rounded-xl border px-5 py-2.5 text-sm font-semibold text-(--sea-ink)"
-              >
-                {siteSettings.ui.ctaViewProjects} →
-              </button>
-              {project.repository && (
-                <a
-                  href={project.repository}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-lg p-2 text-(--sea-ink-soft) transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
-                >
-                  <span className="sr-only">Source code</span>
-                  <svg
-                    viewBox="0 0 16 16"
-                    aria-hidden="true"
-                    width="18"
-                    height="18"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
-                    />
-                  </svg>
-                </a>
-              )}
-              {project.website && (
-                <a
-                  href={project.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-lg p-2 text-(--sea-ink-soft) transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
-                >
-                  <span className="sr-only">Visit website</span>
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    aria-hidden="true"
-                    width="18"
-                    height="18"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.5"
-                      d="M5.5 14.5 14.5 5.5M14.5 5.5H8M14.5 5.5V12"
-                    />
-                  </svg>
-                </a>
-              )}
             </div>
           </div>
 
@@ -321,19 +353,7 @@ function Home() {
                 className="p-1 text-(--sea-ink-soft) transition hover:text-(--sea-ink)"
                 aria-label="Next project"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <ArrowDown size={20} aria-hidden="true" />
               </button>
             ) : (
               <div className="h-7" />

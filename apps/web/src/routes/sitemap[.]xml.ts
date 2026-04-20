@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-
-const SITE_URL = "https://gruere.dev";
+import { SITE_URL } from "@/lib/locale";
+import { CMS_URL } from "@/lib/cms";
 
 function urlEntry(
   path: string,
@@ -30,9 +30,7 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const res = await fetch(
-          "http://localhost:3001/api/project?depth=0&limit=100",
-        );
+        const res = await fetch(`${CMS_URL}/api/project?depth=0&limit=100`);
         const data = res.ok ? await res.json() : { docs: [] };
 
         const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

@@ -14,6 +14,7 @@ const config = defineConfig({
       prerender: {
         crawlLinks: true,
       },
+      autoCodeSplitting: true,
     }),
     viteReact(),
   ],

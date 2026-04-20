@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import type { Locale } from "./getGlobals";
+import { notFound } from "@tanstack/react-router";
+import { z } from "zod";
+import type { Locale } from "@/lib/locale";
+import { CMS_URL } from "@/lib/cms";
 
-const CMS_URL = "http://localhost:3001";
+const localeSchema = z.enum(["en", "fr"]);
 
 interface MediaDoc {
   id: string;
@@ -90,7 +93,7 @@ function mapProject(doc: ProjectDoc, joinSep: string): Project {
 }
 
 export const getProjects = createServerFn()
-  .inputValidator((locale: Locale) => locale)
+  .inputValidator(localeSchema)
   .handler(async ({ data: locale }) => {
     const res = await fetch(
       `${CMS_URL}/api/project?depth=1&limit=20&locale=${locale}`,
@@ -102,7 +105,7 @@ export const getProjects = createServerFn()
   });
 
 export const getProject = createServerFn()
-  .inputValidator((input: { slug: string; locale: Locale }) => input)
+  .inputValidator(z.object({ slug: z.string().min(1), locale: localeSchema }))
   .handler(async ({ data: { slug, locale } }) => {
     const res = await fetch(
       `${CMS_URL}/api/project?where[Slug][equals]=${encodeURIComponent(slug)}&depth=1&limit=1&locale=${locale}`,
@@ -110,7 +113,7 @@ export const getProject = createServerFn()
     if (!res.ok) throw new Error(`CMS responded ${res.status}`);
     const data = await res.json();
     const doc = (data.docs as ProjectDoc[])[0];
-    if (!doc) throw new Error("Project not found");
+    if (!doc) throw notFound();
 
     return mapProject(doc, "\n\n");
   });

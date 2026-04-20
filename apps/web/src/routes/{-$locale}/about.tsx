@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
 import FluidLink from "@/components/FluidLink";
-import { fluidState } from "@/components/TrippyPlane";
 import { getAboutPage, getSiteSettings } from "@/functions/getGlobals";
-import type { Locale } from "@/functions/getGlobals";
+import type { Locale } from "@/lib/locale";
 import {
   localePath,
   hreflangLinks,
@@ -15,7 +13,7 @@ import {
 export const Route = createFileRoute("/{-$locale}/about")({
   component: About,
   loader: async ({ context }) => {
-    const locale = (context as { locale: Locale }).locale;
+    const locale = context.locale;
     const [aboutPage, siteSettings] = await Promise.all([
       getAboutPage({ data: locale }),
       getSiteSettings({ data: locale }),
@@ -69,29 +67,74 @@ export const Route = createFileRoute("/{-$locale}/about")({
 
 function About() {
   const { aboutPage, siteSettings } = Route.useLoaderData();
-  const { locale } = Route.useRouteContext() as { locale: Locale };
-
-  useEffect(() => {
-    fluidState.targetScale = 0.6;
-    return () => {
-      fluidState.targetScale = 1.0;
-    };
-  }, []);
+  const { locale } = Route.useRouteContext();
 
   return (
     <main className="page-wrap px-4 py-12 bg-(--bg-base)/90 backdrop-blur-sm rounded-2xl my-4">
+      {/* ── Hero: photo + intro ── */}
       <section className="island-shell rounded-2xl p-6 sm:p-8">
         <p className="island-kicker mb-2">About</p>
-        <h1 className="display-title mb-3 text-4xl font-bold text-(--sea-ink) sm:text-5xl">
-          {aboutPage.heading}
-        </h1>
-        <p className="m-0 max-w-3xl text-base leading-8 text-(--sea-ink-soft)">
-          {aboutPage.body}
-        </p>
-        <div className="mt-6 flex items-center gap-3">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+          {aboutPage.photo && (
+            <img
+              src={aboutPage.photo.url}
+              alt={aboutPage.photo.alt}
+              className="h-32 w-32 shrink-0 rounded-2xl border border-(--line) object-cover shadow-md sm:h-40 sm:w-40"
+            />
+          )}
+          <div className="min-w-0">
+            <h1 className="font-display mb-3 text-4xl font-bold text-(--sea-ink) sm:text-5xl">
+              {aboutPage.heading}
+            </h1>
+            <p className="m-0 max-w-3xl text-base leading-8 text-(--sea-ink-soft)">
+              {aboutPage.body}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Right now ── */}
+      {aboutPage.currentFocus && (
+        <section className="island-shell mt-6 rounded-2xl p-6 sm:p-8">
+          <h2 className="section-title">Right now</h2>
+          <p className="section-body">{aboutPage.currentFocus}</p>
+        </section>
+      )}
+
+      {/* ── Tools & craft ── */}
+      {aboutPage.techIdentity && (
+        <section className="island-shell mt-6 rounded-2xl p-6 sm:p-8">
+          <h2 className="section-title">Tools &amp; craft</h2>
+          <p className="section-body">{aboutPage.techIdentity}</p>
+        </section>
+      )}
+
+      {/* ── When I'm not coding ── */}
+      {aboutPage.interests && (
+        <section className="island-shell mt-6 rounded-2xl p-6 sm:p-8">
+          <h2 className="section-title">When I&rsquo;m not coding</h2>
+          <p className="section-body">{aboutPage.interests}</p>
+        </section>
+      )}
+
+      {/* ── Let's talk ── */}
+      <section className="island-shell mt-6 rounded-2xl p-6 sm:p-8">
+        <h2 className="section-title">Let&rsquo;s talk</h2>
+        {aboutPage.contactNote && (
+          <p className="section-body mb-4">{aboutPage.contactNote}</p>
+        )}
+        <div className="flex flex-wrap items-center gap-3">
+          {siteSettings.contactEmail && (
+            <a
+              href={`mailto:${siteSettings.contactEmail}`}
+              className="inline-flex items-center gap-2 rounded-full border border-(--chip-line) bg-(--chip-bg) px-4 py-2 text-sm font-semibold text-(--sea-ink) no-underline shadow-sm transition hover:bg-(--link-bg-hover)"
+            >
+              Get in touch
+            </a>
+          )}
           <FluidLink
             to={localePath("/", locale)}
-            className="fluid-cta inline-flex items-center gap-2 rounded-full border border-(--chip-line) px-4 py-2 text-sm text-(--sea-ink) no-underline transition hover:bg-(--link-bg-hover)"
+            className="inline-flex items-center gap-2 rounded-full border border-(--chip-line) px-4 py-2 text-sm text-(--sea-ink) no-underline transition hover:bg-(--link-bg-hover)"
           >
             {siteSettings.ui.ctaViewProjects}
           </FluidLink>
@@ -100,7 +143,7 @@ function About() {
               href={siteSettings.githubUrl}
               target="_blank"
               rel="noreferrer"
-              className="fluid-cta inline-flex items-center gap-2 rounded-full border border-(--chip-line) px-4 py-2 text-sm text-(--sea-ink) no-underline transition hover:bg-(--link-bg-hover)"
+              className="inline-flex items-center gap-2 rounded-full border border-(--chip-line) px-4 py-2 text-sm text-(--sea-ink) no-underline transition hover:bg-(--link-bg-hover)"
             >
               GitHub
             </a>

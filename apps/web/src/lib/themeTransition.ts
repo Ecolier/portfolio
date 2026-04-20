@@ -7,11 +7,11 @@
 
 type RGBA = [number, number, number, number];
 
-// ── Palette definitions (must match styles.css :root / :root[data-theme="dark"]) ──
+// ── Palette definitions (must match styles.css :root / :root.dark) ──
 
 const LIGHT: Record<string, RGBA> = {
-  "--sea-ink": [30, 45, 61, 1],
-  "--sea-ink-soft": [74, 94, 110, 1],
+  "--sea-ink": [26, 43, 64, 1],
+  "--sea-ink-soft": [69, 96, 122, 1],
   "--lagoon": [107, 157, 186, 1],
   "--lagoon-deep": [61, 122, 145, 1],
   "--palm": [90, 126, 150, 1],
@@ -21,7 +21,7 @@ const LIGHT: Record<string, RGBA> = {
   "--surface-strong": [255, 255, 255, 0.9],
   "--line": [30, 45, 61, 0.14],
   "--inset-glint": [255, 255, 255, 0.82],
-  "--kicker": [74, 94, 110, 0.9],
+  "--kicker": [74, 94, 110, 1],
   "--bg-base": [232, 237, 243, 1],
   "--header-bg": [240, 243, 248, 0.84],
   "--chip-bg": [230, 237, 245, 0.55],
@@ -29,23 +29,31 @@ const LIGHT: Record<string, RGBA> = {
   "--link-bg-hover": [230, 237, 245, 0.6],
   "--hero-a": [107, 157, 186, 0.25],
   "--hero-b": [90, 126, 150, 0.15],
-  "--phase-a": [180, 195, 220, 0.5],
-  "--phase-b": [195, 210, 230, 0.5],
-  "--phase-c": [210, 220, 240, 0.5],
-  "--phase-a-bg": [217, 224, 237, 0.45],
-  "--phase-b-bg": [230, 237, 245, 0.45],
-  "--phase-c-bg": [240, 245, 250, 0.45],
   "--link-decoration": [61, 122, 145, 0.35],
   "--link-hover": [45, 105, 128, 1],
   "--nav-accent": [138, 184, 204, 1],
   "--selection-bg": [107, 157, 186, 0.24],
   "--shadow-island": [30, 50, 72, 0.1],
   "--shadow-island-sm": [30, 45, 61, 0.08],
+  "--duck-feet": [255, 158, 0, 1],
+  "--duck-beak": [255, 100, 0, 1],
+  "--duck-eye": [240, 243, 248, 1],
+  "--duck-body": [26, 45, 82, 1],
+  "--duck-body-dark": [15, 30, 58, 1],
+  "--duck-body-soft": [45, 63, 106, 1],
+  "--umbrella-pole": [192, 206, 216, 1],
+  "--umbrella-pole-soft": [210, 221, 229, 1],
+  "--umbrella": [181, 84, 122, 1],
+  "--umbrella-deep": [158, 66, 104, 1],
+  "--umbrella-stripe": [240, 212, 222, 1],
+  "--umbrella-stripe-soft": [232, 192, 206, 1],
+  "--duck-highlight": [255, 255, 255, 1],
+  "--duck-shadow": [0, 0, 0, 1],
 };
 
 const DARK: Record<string, RGBA> = {
-  "--sea-ink": [208, 220, 230, 1],
-  "--sea-ink-soft": [138, 159, 178, 1],
+  "--sea-ink": [200, 218, 235, 1],
+  "--sea-ink-soft": [126, 154, 181, 1],
   "--lagoon": [123, 184, 212, 1],
   "--lagoon-deep": [160, 208, 230, 1],
   "--palm": [123, 170, 194, 1],
@@ -63,18 +71,26 @@ const DARK: Record<string, RGBA> = {
   "--link-bg-hover": [31, 41, 56, 0.6],
   "--hero-a": [123, 184, 212, 0.15],
   "--hero-b": [90, 126, 150, 0.1],
-  "--phase-a": [70, 95, 135, 0.5],
-  "--phase-b": [55, 78, 115, 0.5],
-  "--phase-c": [40, 60, 90, 0.5],
-  "--phase-a-bg": [31, 41, 56, 0.5],
-  "--phase-b-bg": [20, 31, 46, 0.5],
-  "--phase-c-bg": [13, 20, 31, 0.5],
   "--link-decoration": [123, 184, 212, 0.3],
   "--link-hover": [160, 208, 230, 1],
   "--nav-accent": [123, 184, 212, 1],
   "--selection-bg": [123, 184, 212, 0.2],
   "--shadow-island": [0, 0, 0, 0.25],
   "--shadow-island-sm": [0, 0, 0, 0.15],
+  "--duck-feet": [255, 183, 51, 1],
+  "--duck-beak": [255, 133, 51, 1],
+  "--duck-eye": [255, 255, 255, 1],
+  "--duck-body": [77, 101, 137, 1],
+  "--duck-body-dark": [58, 79, 110, 1],
+  "--duck-body-soft": [108, 130, 163, 1],
+  "--umbrella-pole": [74, 100, 117, 1],
+  "--umbrella-pole-soft": [90, 117, 133, 1],
+  "--umbrella": [158, 74, 106, 1],
+  "--umbrella-deep": [192, 104, 136, 1],
+  "--umbrella-stripe": [92, 45, 74, 1],
+  "--umbrella-stripe-soft": [110, 56, 88, 1],
+  "--duck-highlight": [200, 218, 235, 1],
+  "--duck-shadow": [0, 0, 0, 1],
 };
 
 const PALETTES = { light: LIGHT, dark: DARK } as const;
@@ -134,7 +150,7 @@ function tick(now: number) {
 
 /**
  * Start an animated transition to the given theme.
- * Call this AFTER setting `data-theme` / class on `<html>` so the
+ * Call this AFTER setting the class on `<html>` so the
  * CSS cascade already reflects the target—our inline styles just
  * temporarily override until convergence.
  */

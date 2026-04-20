@@ -3,22 +3,24 @@ import {
   Outlet,
   Scripts,
   ScriptOnce,
-  createRootRoute,
+  createRootRouteWithContext,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
-import { useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
-import TrippyPlane from "@/components/TrippyPlane";
+import type { Locale } from "@/lib/locale";
 
 import appCss from "@/styles.css?url";
 
+export interface RouterContext {
+  locale: Locale;
+}
+
 // Runs inline during HTML parsing — sets theme class before any paint
-const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`;
+const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);root.style.colorScheme=resolved;document.cookie='theme='+resolved+';path=/;max-age=31536000;samesite=lax';var old=document.querySelector('meta[name="theme-color"]');if(old)old.remove();var m=document.createElement('meta');m.name='theme-color';m.content=resolved==='dark'?'#0b1118':'#edf1f6';document.head.appendChild(m);}catch(e){}})();`;
 
 const LANG_INIT_SCRIPT = `(function(){var s=location.pathname.split('/');document.documentElement.lang=s[1]==='fr'?'fr':'en'})();`;
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -27,8 +29,13 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
-    scripts: [{ children: THEME_INIT_SCRIPT }, { children: LANG_INIT_SCRIPT }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: "/favicon.ico", sizes: "32x32" },
+      { rel: "icon", href: "/icon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/manifest.json" },
+    ],
   }),
   component: RootComponent,
   shellComponent: RootDocument,
@@ -39,22 +46,6 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const [showCanvas, setShowCanvas] = useState(false);
-  const [canvasReady, setCanvasReady] = useState(false);
-  // false on server AND first client render — body stays opacity:0 until we're ready
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    setHydrated(true);
-    const isBot = /bot|crawl|spider|slurp|googlebot|bingbot|yandex/i.test(
-      navigator.userAgent,
-    );
-    if (!isBot) setShowCanvas(true);
-  }, []);
-
-  // Visible once hydrated AND either canvas is ready or canvas won't be shown
-  const visible = hydrated && (canvasReady || !showCanvas);
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -62,33 +53,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body
         className="font-sans antialiased wrap-anywhere selection:bg-(--selection-bg) flex flex-col min-h-[100dvh]"
-        style={{
-          opacity: visible ? 1 : 0,
-          transition: hydrated ? "opacity 400ms ease" : "none",
-        }}
         suppressHydrationWarning
       >
         <ScriptOnce children={THEME_INIT_SCRIPT} />
         <ScriptOnce children={LANG_INIT_SCRIPT} />
-        {showCanvas && (
-          <div
-            className="fixed -z-10"
-            style={{
-              top: "calc(-1 * env(safe-area-inset-top, 0px))",
-              right: "calc(-1 * env(safe-area-inset-right, 0px))",
-              bottom: "calc(-1 * env(safe-area-inset-bottom, 0px))",
-              left: "calc(-1 * env(safe-area-inset-left, 0px))",
-            }}
-          >
-            <Canvas
-              camera={{ position: [0, 3, 12], fov: 55, near: 0.1, far: 200 }}
-              style={{ width: "100%", height: "100%" }}
-              onCreated={() => setCanvasReady(true)}
-            >
-              <TrippyPlane />
-            </Canvas>
-          </div>
-        )}
         {children}
         <TanStackDevtools
           config={{

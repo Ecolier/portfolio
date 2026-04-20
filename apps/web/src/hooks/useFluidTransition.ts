@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useRouter } from "@tanstack/react-router";
-import { shaderMaterialRef } from "#/components/TrippyPlane";
+import { shaderMaterialRef } from "@/components/TrippyPlane";
 
 const REVEAL_DURATION = 800; // ms for the fluid to recede and reveal new page
 
@@ -9,7 +9,7 @@ export function useFluidTransition() {
   const animating = useRef(false);
 
   const navigateWithTransition = useCallback(
-    (to: string, phase: number = 2) => {
+    (to: string) => {
       if (animating.current) return;
       animating.current = true;
 
@@ -20,8 +20,7 @@ export function useFluidTransition() {
         return;
       }
 
-      // Instantly flood the screen with the selected phase color
-      mat.uniforms.u_transitionPhase.value = phase;
+      // Instantly flood the screen
       mat.uniforms.u_transition.value = 1;
 
       // Navigate immediately — new content is hidden behind the flood
@@ -35,8 +34,6 @@ export function useFluidTransition() {
           animating.current = false;
           return;
         }
-        currentMat.uniforms.u_transitionPhase.value = phase;
-
         const elapsed = now - start;
         const progress = Math.min(elapsed / REVEAL_DURATION, 1);
         // ease-out cubic — fast start, gentle landing
