@@ -1,6 +1,7 @@
 import { useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { shaderMaterialRef, windState } from "@/lib/canvasState";
 
 const TIME_ORIGIN = typeof performance !== "undefined" ? performance.now() : 0;
 
@@ -23,15 +24,7 @@ function getResolvedTheme(): "light" | "dark" {
   return document.documentElement.classList.contains("dark") ? "dark" : "light";
 }
 
-// Shared ref so the transition system can access the shader material
-export const shaderMaterialRef = {
-  current: null as THREE.ShaderMaterial | null,
-};
-
-// Module-level state: obstacle rectangles in UV coords (0-1, bottom-left origin)
-export const windState = {
-  obstacles: [] as Array<{ x: number; y: number; w: number; h: number }>,
-};
+export { shaderMaterialRef, windState };
 
 export default function TrippyPlane() {
   const materialRef = useRef<THREE.ShaderMaterial>(null!);

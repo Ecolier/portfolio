@@ -34,7 +34,12 @@ export interface Project {
   slug: string;
   name: string;
   excerpt: string | null;
-  coverImage: { url: string; alt: string } | null;
+  coverImage: {
+    url: string;
+    alt: string;
+    width: number | null;
+    height: number | null;
+  } | null;
   keywords: string[];
   company: string | null;
   repository: string | null;
@@ -68,7 +73,12 @@ function normalizeCover(
   cover: ProjectDoc["CoverImage"],
 ): Project["coverImage"] {
   if (!cover || typeof cover === "string") return null;
-  return { url: `${CMS_PUBLIC_URL}${cover.url}`, alt: cover.alt };
+  return {
+    url: `${CMS_PUBLIC_URL}${cover.url}`,
+    alt: cover.alt,
+    width: cover.width ?? null,
+    height: cover.height ?? null,
+  };
 }
 
 function mapProject(doc: ProjectDoc, joinSep: string): Project {

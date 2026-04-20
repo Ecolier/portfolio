@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { getProjects } from "@/functions/getProjects";
 import { getHomePage, getSiteSettings } from "@/functions/getGlobals";
 import type { Locale } from "@/lib/locale";
@@ -13,8 +12,10 @@ import {
 } from "@/lib/locale";
 import { useFluidTransition } from "@/hooks/useFluidTransition";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
-import TrippyPlane, { windState } from "@/components/TrippyPlane";
+import { windState } from "@/lib/canvasState";
 import DuckMascot from "@/components/DuckMascot";
+
+const HeroCanvas = lazy(() => import("@/components/HeroCanvas"));
 
 export const Route = createFileRoute("/{-$locale}/")({
   component: Home,
@@ -183,19 +184,9 @@ function Home() {
       >
         {showCanvas && (
           <div className="pointer-events-none absolute inset-0 z-0">
-            <Canvas
-              camera={{ position: [0, 3, 12], fov: 55, near: 0.1, far: 200 }}
-              gl={{ alpha: true }}
-              style={{
-                width: "100%",
-                height: "100%",
-                background: "transparent",
-                pointerEvents: "none",
-              }}
-              onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-            >
-              <TrippyPlane />
-            </Canvas>
+            <Suspense>
+              <HeroCanvas />
+            </Suspense>
           </div>
         )}
         <div className="relative z-10 flex min-h-0 flex-col items-center">
@@ -262,6 +253,10 @@ function Home() {
                   <img
                     src={project.coverImage.url}
                     alt=""
+                    loading={i === 0 ? "eager" : "lazy"}
+                    fetchPriority={i === 0 ? "high" : undefined}
+                    width={project.coverImage.width || 1347}
+                    height={project.coverImage.height || 757}
                     className="project-cover aspect-[16/9] w-full object-cover"
                   />
                 </div>

@@ -83,7 +83,7 @@ function LocaleLayout() {
       </div>
       <footer className="site-footer py-6 text-center text-xs text-(--sea-ink-soft) backdrop-blur-sm">
         <div className="page-wrap flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
-          <span>© 🦆 & {new Date().getFullYear()} Evan Gruère</span>
+          <span>©{new Date().getFullYear()} Evan Gruère & Duck</span>
           <div className="flex items-center gap-3">
             {/* Language switcher — mobile only (desktop version is in the header) */}
             <a

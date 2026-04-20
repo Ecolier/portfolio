@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useRouter } from "@tanstack/react-router";
-import { shaderMaterialRef } from "@/components/TrippyPlane";
+import { shaderMaterialRef } from "@/lib/canvasState";
 
 const REVEAL_DURATION = 800; // ms for the fluid to recede and reveal new page
 

@@ -52,13 +52,19 @@ export const Route = createFileRoute("/{-$locale}/projects/$slug")({
         })),
         ...(loaderData.coverImage
           ? [
-              { property: "og:image", content: loaderData.coverImage.url },
+              {
+                property: "og:image",
+                content: loaderData.coverImage.url,
+              },
               {
                 property: "og:image:alt",
                 content: loaderData.coverImage.alt,
               },
               { name: "twitter:card", content: "summary_large_image" },
-              { name: "twitter:image", content: loaderData.coverImage.url },
+              {
+                name: "twitter:image",
+                content: loaderData.coverImage.url,
+              },
             ]
           : [{ name: "twitter:card", content: "summary" }]),
         { name: "twitter:title", content: title },

@@ -60,6 +60,15 @@ export const Route = createFileRoute("/{-$locale}/about")({
       links: [
         { rel: "canonical", href: canonicalUrl },
         ...hreflangLinks("/about"),
+        ...(aboutPage.photo
+          ? [
+              {
+                rel: "preload",
+                as: "image",
+                href: aboutPage.photo.url,
+              },
+            ]
+          : []),
       ],
     };
   },
@@ -79,6 +88,8 @@ function About() {
             <img
               src={aboutPage.photo.url}
               alt={aboutPage.photo.alt}
+              width={160}
+              height={160}
               className="h-32 w-32 shrink-0 rounded-2xl border border-(--line) object-cover shadow-md sm:h-40 sm:w-40"
             />
           )}
