@@ -49,7 +49,6 @@ export default function Header({
   const duckRef = useRef<HeaderDuckHandle>(null);
 
   // Fly the header duck in/out based on hero visibility
-  const settled = useRef(false);
   useEffect(() => {
     const duck = duckRef.current;
     if (!duck) return;
@@ -57,18 +56,6 @@ export default function Header({
     const observer = new MutationObserver(() => {
       const visible =
         document.documentElement.hasAttribute("data-hero-visible");
-
-      if (!settled.current) {
-        // First callback after mount — snap without animating
-        settled.current = true;
-        if (visible) duck.hide();
-        else duck.show();
-        // Enable CSS transitions for subsequent changes
-        requestAnimationFrame(() => {
-          document.documentElement.classList.add("header-ready");
-        });
-        return;
-      }
 
       if (visible) {
         duck.exit();
@@ -82,16 +69,17 @@ export default function Header({
       attributeFilter: ["data-hero-visible"],
     });
 
-    // If the attribute is already settled before the first mutation, snap now
+    // Snap to the correct state before the first mutation fires
     const alreadyVisible =
       document.documentElement.hasAttribute("data-hero-visible");
     if (alreadyVisible) {
-      settled.current = true;
       duck.hide();
-      requestAnimationFrame(() => {
-        document.documentElement.classList.add("header-ready");
-      });
+    } else {
+      duck.show();
     }
+    requestAnimationFrame(() => {
+      document.documentElement.classList.add("header-ready");
+    });
 
     return () => observer.disconnect();
   }, []);
