@@ -1,0 +1,7 @@
+{$DOMAIN} {
+	reverse_proxy web:3000
+}
+
+cms.{$DOMAIN} {
+	reverse_proxy cms:3001
+}

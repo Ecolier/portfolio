@@ -1,0 +1,10 @@
+node_modules
+.git
+.next
+dist
+.output
+data
+*.wt
+.env
+.env.*
+!.env.example

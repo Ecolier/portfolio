@@ -1,0 +1,65 @@
+services:
+  web:
+    image: ghcr.io/${COMPOSE_IMAGE_PREFIX}/web:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app
+
+  cms:
+    image: ghcr.io/${COMPOSE_IMAGE_PREFIX}/cms:latest
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=mongodb://mongo:27017/portfolio
+      - PAYLOAD_SECRET=${PAYLOAD_SECRET}
+      - WEB_URL=${WEB_URL}
+      - REVALIDATE_SECRET=${REVALIDATE_SECRET}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - app
+
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    command: --storageEngine=wiredTiger
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - cms
+    networks:
+      - app
+
+volumes:
+  mongo_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  app:
