@@ -21,12 +21,13 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 app && \
-    adduser --system --uid 1001 app
-
-COPY --from=builder --chown=app:app /app/apps/web/dist ./apps/web/dist
 COPY --from=pruner /app/out/json/ .
 RUN pnpm install --frozen-lockfile --prod
+COPY --from=builder /app/apps/web/dist ./apps/web/dist
+
+RUN addgroup --system --gid 1001 app && \
+    adduser --system --uid 1001 app && \
+    chown -R app:app /app
 
 USER app
 EXPOSE 3000
