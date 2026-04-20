@@ -6,6 +6,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - CMS_URL=http://cms:3001
+      - CMS_PUBLIC_URL=https://cms.${DOMAIN}
     networks:
       - app
 
@@ -14,6 +16,8 @@ services:
     restart: unless-stopped
     ports:
       - "3001:3001"
+    volumes:
+      - cms_media:/app/apps/cms/media
     environment:
       - NODE_ENV=production
       - DATABASE_URL=mongodb://mongo:27017/portfolio
@@ -61,6 +65,7 @@ services:
 
 volumes:
   mongo_data:
+  cms_media:
   caddy_data:
   caddy_config:
 

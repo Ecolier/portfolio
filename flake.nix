@@ -20,6 +20,7 @@
             buildInputs = with pkgs; [
               nodejs_25
               mongodb-ce
+              mongodb-tools
               pnpm
             ];
           };

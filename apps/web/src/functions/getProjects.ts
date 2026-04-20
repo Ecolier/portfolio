@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
 import { z } from "zod";
 import type { Locale } from "@/lib/locale";
-import { CMS_URL } from "@/lib/cms";
+import { CMS_URL, CMS_PUBLIC_URL } from "@/lib/cms";
 
 const localeSchema = z.enum(["en", "fr"]);
 
@@ -68,7 +68,7 @@ function normalizeCover(
   cover: ProjectDoc["CoverImage"],
 ): Project["coverImage"] {
   if (!cover || typeof cover === "string") return null;
-  return { url: `${CMS_URL}${cover.url}`, alt: cover.alt };
+  return { url: `${CMS_PUBLIC_URL}${cover.url}`, alt: cover.alt };
 }
 
 function mapProject(doc: ProjectDoc, joinSep: string): Project {

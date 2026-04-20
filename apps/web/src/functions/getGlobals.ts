@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { CMS_URL } from "@/lib/cms";
+import { CMS_URL, CMS_PUBLIC_URL } from "@/lib/cms";
 import type { Locale } from "@/lib/locale";
 
 const localeSchema = z.enum(["en", "fr"]);
@@ -70,7 +70,10 @@ export const getAboutPage = createServerFn()
     const data = await res.json();
     const photo =
       data.photo && typeof data.photo === "object" && data.photo.url
-        ? { url: `${CMS_URL}${data.photo.url}`, alt: data.photo.alt || "" }
+        ? {
+            url: `${CMS_PUBLIC_URL}${data.photo.url}`,
+            alt: data.photo.alt || "",
+          }
         : null;
     return {
       heading: data.heading,
