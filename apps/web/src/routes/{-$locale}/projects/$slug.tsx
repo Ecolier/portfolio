@@ -1,5 +1,6 @@
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { RichText } from "@payloadcms/richtext-lexical/react";
 import { getProject } from "@/functions/getProjects";
 import type { Locale } from "@/lib/locale";
 import {
@@ -160,11 +161,9 @@ function ProjectDetail() {
             </div>
           )}
 
-          {project.description && (
-            <div className="max-w-3xl space-y-4 text-base leading-8 text-(--sea-ink-soft)">
-              {project.description.split("\n\n").map((paragraph, i) => (
-                <p key={i}>{paragraph}</p>
-              ))}
+          {project.descriptionRich && (
+            <div className="max-w-3xl text-base leading-8 text-(--sea-ink-soft) [&_a]:underline [&_a]:underline-offset-4 [&_p+p]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6">
+              <RichText data={project.descriptionRich} />
             </div>
           )}
 

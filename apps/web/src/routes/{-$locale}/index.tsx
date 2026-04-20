@@ -270,9 +270,9 @@ function Home() {
                 <h2 className="font-display text-3xl font-bold text-(--sea-ink) sm:text-5xl md:text-6xl">
                   {project.name}
                 </h2>
-                {project.description && (
+                {(project.excerpt || project.description) && (
                   <p className="mt-3 max-w-2xl text-base leading-relaxed text-(--sea-ink-soft) sm:text-lg">
-                    {project.description}
+                    {project.excerpt || project.description}
                   </p>
                 )}
                 {project.keywords.length > 0 && (

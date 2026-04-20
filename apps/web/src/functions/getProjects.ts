@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
 import { z } from "zod";
+import type { SerializedEditorState } from "@payloadcms/richtext-lexical/lexical";
 import type { Locale } from "@/lib/locale";
 import { CMS_URL, CMS_PUBLIC_URL } from "@/lib/cms";
 
@@ -24,7 +25,7 @@ interface ProjectDoc {
   Company?: string | null;
   Repository?: string | null;
   Website?: string | null;
-  Description: { root: { children: unknown[] } };
+  Description: SerializedEditorState | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,6 +46,7 @@ export interface Project {
   repository: string | null;
   website: string | null;
   description: string;
+  descriptionRich: SerializedEditorState | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -92,6 +94,7 @@ function mapProject(doc: ProjectDoc, joinSep: string): Project {
     company: doc.Company ?? null,
     repository: doc.Repository ?? null,
     website: doc.Website ?? null,
+    descriptionRich: doc.Description ?? null,
     description:
       doc.Description?.root?.children
         ?.map((block) => extractText(block))
