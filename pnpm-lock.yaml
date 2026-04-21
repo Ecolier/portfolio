@@ -86,6 +86,9 @@ importers:
       three:
         specifier: ^0.184.0
         version: 0.184.0
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@playwright/test':
         specifier: 1.59.1
@@ -147,18 +150,7 @@ importers:
 
   apps/cms: {}
 
-  apps/web:
-    dependencies:
-      '@payloadcms/richtext-lexical':
-        specifier: ^3.83.0
-        version: 3.83.0(@faceless-ui/modal@3.0.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@faceless-ui/scroll-info@2.0.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@payloadcms/next@3.83.0(@types/react@19.2.14)(graphql@16.13.2)(monaco-editor@0.55.1)(next@16.2.4(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(sass@1.77.4))(payload@3.83.0(graphql@16.13.2)(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(@types/react@19.2.14)(monaco-editor@0.55.1)(next@16.2.4(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(sass@1.77.4))(payload@3.83.0(graphql@16.13.2)(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3)(yjs@13.6.30)
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      sharp:
-        specifier: ^0.34.5
-        version: 0.34.5
+  apps/web: {}
 
 packages:
 
