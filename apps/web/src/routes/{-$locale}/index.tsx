@@ -40,7 +40,8 @@ export const Route = createFileRoute("/{-$locale}/")({
     const canonical = localePath("/", locale);
     const canonicalUrl = `${SITE_URL}${canonical}`;
     const { homePage, siteSettings } = loaderData;
-    const title = homePage.metaTitle || siteSettings.siteTitle || "Evan Gruère";
+    const title =
+      homePage.metaTitle || siteSettings.siteTitle || "Evan Gruère's Portfolio";
     const description =
       homePage.metaDescription ||
       siteSettings.siteDescription ||

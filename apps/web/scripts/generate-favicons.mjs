@@ -17,8 +17,8 @@ const root = resolve(__dirname, "..");
 const assets = resolve(root, "assets");
 const pub = resolve(root, "public");
 
-const lightSvg = readFileSync(resolve(assets, "duck_duck-light.svg"));
-const darkSvg = readFileSync(resolve(assets, "duck_duck-dark.svg"));
+const lightSvg = readFileSync(resolve(assets, "duck_light.svg"));
+const darkSvg = readFileSync(resolve(assets, "duck_dark.svg"));
 
 // ── 1. Rasterize PNGs from the light SVG ───────────────────────────
 async function toPng(svgBuffer, size) {
