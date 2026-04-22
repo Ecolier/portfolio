@@ -140,6 +140,7 @@ function Home() {
   const sectionsRef = useRef<HTMLElement[]>([]);
   const canopyRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLElement>(null);
+  const [isHeroVisible, setIsHeroVisible] = useState(true);
   const [showCanvas, setShowCanvas] = useState(false);
 
   useEffect(() => {
@@ -169,31 +170,63 @@ function Home() {
   // ── Measure umbrella canopy relative to hero section ──
   useEffect(() => {
     let raf = 0;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
     function measure() {
       const el = canopyRef.current;
       const hero = heroRef.current;
       if (!el || !hero) {
         windState.obstacles = [];
-      } else {
-        const cr = el.getBoundingClientRect();
-        const hr = hero.getBoundingClientRect();
-        windState.obstacles = [
-          {
-            x: (cr.left + cr.width / 2 - hr.left) / hr.width,
-            y: 1 - (cr.top + cr.height / 2 - hr.top) / hr.height,
-            w: cr.width / 2 / hr.width,
-            h: cr.height / 2 / hr.height,
-          },
-        ];
+        return;
       }
+
+      const cr = el.getBoundingClientRect();
+      const hr = hero.getBoundingClientRect();
+      windState.obstacles = [
+        {
+          x: (cr.left + cr.width / 2 - hr.left) / hr.width,
+          y: 1 - (cr.top + cr.height / 2 - hr.top) / hr.height,
+          w: cr.width / 2 / hr.width,
+          h: cr.height / 2 / hr.height,
+        },
+      ];
+    }
+
+    function scheduleMeasure() {
+      cancelAnimationFrame(raf);
       raf = requestAnimationFrame(measure);
     }
-    raf = requestAnimationFrame(measure);
+
+    function syncSampling() {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+
+      if (document.visibilityState === "visible" && isHeroVisible) {
+        intervalId = setInterval(scheduleMeasure, 120);
+      }
+    }
+
+    const resizeObserver = new ResizeObserver(scheduleMeasure);
+    if (heroRef.current) resizeObserver.observe(heroRef.current);
+    if (canopyRef.current) resizeObserver.observe(canopyRef.current);
+
+    window.addEventListener("resize", scheduleMeasure, { passive: true });
+    document.addEventListener("visibilitychange", syncSampling);
+
+    scheduleMeasure();
+    syncSampling();
+
     return () => {
       cancelAnimationFrame(raf);
+      if (intervalId) clearInterval(intervalId);
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", scheduleMeasure);
+      document.removeEventListener("visibilitychange", syncSampling);
       windState.obstacles = [];
     };
-  }, []);
+  }, [isHeroVisible]);
 
   // ── Toggle header CTA visibility based on hero intersection ──
   useEffect(() => {
@@ -201,6 +234,7 @@ function Home() {
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
+        setIsHeroVisible(entry.isIntersecting);
         document.documentElement.toggleAttribute(
           "data-hero-visible",
           entry.isIntersecting,
@@ -267,7 +301,7 @@ function Home() {
         {showCanvas && (
           <div className="pointer-events-none absolute inset-0 z-0">
             <Suspense>
-              <HeroCanvas />
+              <HeroCanvas active={isHeroVisible} />
             </Suspense>
           </div>
         )}

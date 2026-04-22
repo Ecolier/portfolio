@@ -311,8 +311,16 @@ function createProgram(gl: WebGLRenderingContext): WebGLProgram | null {
   return null;
 }
 
-export default function HeroCanvas() {
+export default function HeroCanvas({ active = true }: { active?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const activeRef = useRef(active);
+  const syncActivityRef = useRef<(() => void) | null>(null);
+
+  activeRef.current = active;
+
+  useEffect(() => {
+    syncActivityRef.current?.();
+  }, [active]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -370,6 +378,7 @@ export default function HeroCanvas() {
     glCtx.blendFunc(glCtx.SRC_ALPHA, glCtx.ONE_MINUS_SRC_ALPHA);
 
     let raf = 0;
+    let isAnimating = false;
     let last = performance.now();
     const current = {
       bg: [...PALETTES[getResolvedTheme()].bg] as [number, number, number],
@@ -402,6 +411,12 @@ export default function HeroCanvas() {
     }
 
     function render(now: number) {
+      if (!activeRef.current || document.visibilityState !== "visible") {
+        isAnimating = false;
+        raf = 0;
+        return;
+      }
+
       const delta = Math.min((now - last) / 1000, 0.05);
       last = now;
       const factor = 1 - Math.exp(-DECAY_RATE * delta);
@@ -458,8 +473,24 @@ export default function HeroCanvas() {
       raf = requestAnimationFrame(render);
     }
 
+    function syncActivity() {
+      const shouldRun =
+        activeRef.current && document.visibilityState === "visible";
+      if (shouldRun && !isAnimating) {
+        isAnimating = true;
+        last = performance.now();
+        raf = requestAnimationFrame(render);
+      } else if (!shouldRun && isAnimating) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+        isAnimating = false;
+      }
+    }
+
+    syncActivityRef.current = syncActivity;
+
     resize();
-    raf = requestAnimationFrame(render);
+    syncActivity();
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvasEl);
@@ -470,11 +501,14 @@ export default function HeroCanvas() {
       attributes: true,
       attributeFilter: ["class"],
     });
+    document.addEventListener("visibilitychange", syncActivity);
 
     return () => {
       cancelAnimationFrame(raf);
       resizeObserver.disconnect();
       themeObserver.disconnect();
+      document.removeEventListener("visibilitychange", syncActivity);
+      syncActivityRef.current = null;
       glCtx.deleteBuffer(buffer);
       glCtx.deleteProgram(program);
     };
