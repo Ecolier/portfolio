@@ -19,22 +19,24 @@ const PALETTES: Record<"light" | "dark", Palette> = {
     bg: [0.043, 0.067, 0.094],
     line: [0.784, 0.855, 0.922],
     particle: [0.5, 0.62, 0.76],
-    visibilityBoost: 3.0,
+    visibilityBoost: 1.0,
   },
 };
 
 const DECAY_RATE = 6;
 
-const VERTEX_SHADER = `
-attribute vec2 a_position;
+const VERTEX_SHADER = `#version 300 es
+in vec2 a_position;
 
 void main() {
   gl_Position = vec4(a_position, 0.0, 1.0);
 }
 `;
 
-const FRAGMENT_SHADER = `
+const FRAGMENT_SHADER = `#version 300 es
 precision highp float;
+
+out vec4 fragColor;
 
 uniform float u_time;
 uniform vec2  u_res;
@@ -263,7 +265,7 @@ void main() {
 
   vec3 color = mix(u_particleColor, u_lineColor, clamp(a * 2.0, 0.0, 1.0) * 0.45);
   float alpha = min(1.0, a * u_visibilityBoost);
-  gl_FragColor = vec4(color, alpha);
+  fragColor = vec4(color * alpha, alpha);
 }
 `;
 
@@ -273,7 +275,7 @@ function getResolvedTheme(): "light" | "dark" {
 }
 
 function createShader(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   type: number,
   source: string,
 ): WebGLShader | null {
@@ -288,7 +290,7 @@ function createShader(
   return null;
 }
 
-function createProgram(gl: WebGLRenderingContext): WebGLProgram | null {
+function createProgram(gl: WebGL2RenderingContext): WebGLProgram | null {
   const vertexShader = createShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
   const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
   if (!vertexShader || !fragmentShader) return null;
@@ -326,14 +328,14 @@ export default function HeroCanvas({ active = true }: { active?: boolean }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const gl = canvas.getContext("webgl", {
+    const gl = canvas.getContext("webgl2", {
       alpha: true,
       antialias: false,
       depth: false,
       stencil: false,
-      premultipliedAlpha: false,
+      colorSpace: "srgb",
       powerPreference: "high-performance",
-    });
+    }) as WebGL2RenderingContext | null;
     if (!gl) return;
 
     const canvasEl = canvas;
@@ -375,7 +377,7 @@ export default function HeroCanvas({ active = true }: { active?: boolean }) {
     glCtx.vertexAttribPointer(positionLoc, 2, glCtx.FLOAT, false, 0, 0);
     glCtx.clearColor(0, 0, 0, 0);
     glCtx.enable(glCtx.BLEND);
-    glCtx.blendFunc(glCtx.SRC_ALPHA, glCtx.ONE_MINUS_SRC_ALPHA);
+    glCtx.blendFunc(glCtx.ONE, glCtx.ONE_MINUS_SRC_ALPHA);
 
     let raf = 0;
     let isAnimating = false;
