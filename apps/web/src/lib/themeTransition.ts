@@ -1,6 +1,6 @@
 /**
  * Drives CSS custom-property transitions using the same exponential-decay
- * formula as the Three.js fluid simulation, ensuring frame-perfect sync.
+ * formula as the hero wind overlay, ensuring frame-perfect sync.
  *
  * Usage: call `animateThemeTransition("light" | "dark")` on toggle.
  */
@@ -103,7 +103,7 @@ let current: Record<string, RGBA> = {};
 let target: Record<string, RGBA> = {};
 let lastTime = 0;
 
-/** Same exponential-decay constant as TrippyPlane's color lerp */
+/** Same exponential-decay constant as the hero wind overlay color lerp */
 const DECAY_RATE = 6;
 
 /** Stop animating once max channel delta falls below this */

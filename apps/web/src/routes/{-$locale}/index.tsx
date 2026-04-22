@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { getProjects } from "@/functions/getProjects";
 import { getHomePage, getSiteSettings } from "@/functions/getGlobals";
@@ -10,12 +10,42 @@ import {
   ogLocale,
   ogLocaleAlternates,
 } from "@/lib/locale";
-import { useFluidTransition } from "@/hooks/useFluidTransition";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { windState } from "@/lib/canvasState";
 import DuckMascot from "@/components/DuckMascot";
 
 const HeroCanvas = lazy(() => import("@/components/HeroCanvas"));
+
+function shouldEnableWindTunnel(): boolean {
+  if (typeof window === "undefined") return false;
+
+  const ua = navigator.userAgent.toLowerCase();
+  const isBot = /(bot|crawl|spider|slurp|googlebot|bingbot|yandex)/i.test(ua);
+  if (isBot) return false;
+
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return false;
+  }
+
+  const connection = (
+    navigator as Navigator & {
+      connection?: { saveData?: boolean };
+    }
+  ).connection;
+  if (connection?.saveData) return false;
+
+  const memory = (navigator as Navigator & { deviceMemory?: number })
+    .deviceMemory;
+  if (typeof memory === "number" && memory <= 4) return false;
+
+  const cores = navigator.hardwareConcurrency;
+  if (typeof cores === "number" && cores <= 4) return false;
+
+  const canvas = document.createElement("canvas");
+  return !!(
+    canvas.getContext("webgl") || canvas.getContext("experimental-webgl")
+  );
+}
 
 export const Route = createFileRoute("/{-$locale}/")({
   component: Home,
@@ -70,19 +100,70 @@ export const Route = createFileRoute("/{-$locale}/")({
 });
 
 function Home() {
-  const { projects, homePage, siteSettings } = Route.useLoaderData();
+  const loaderData = Route.useLoaderData() as {
+    projects: Array<{
+      id: string;
+      slug: string;
+      name: string;
+      company?: string | null;
+      excerpt?: string | null;
+      description?: string | null;
+      keywords: string[];
+      coverImage?: {
+        url: string;
+        width?: number | null;
+        height?: number | null;
+      } | null;
+      repository?: string | null;
+      website?: string | null;
+    }>;
+    homePage: {
+      headline: string;
+      subtitle?: string | null;
+      metaTitle?: string | null;
+      metaDescription?: string | null;
+    };
+    siteSettings: {
+      ui: {
+        ctaContact: string;
+        navProjects: string;
+        ctaViewProjects: string;
+      };
+      contactEmail?: string | null;
+      siteTitle?: string | null;
+      siteDescription?: string | null;
+    };
+  };
+  const { projects, homePage, siteSettings } = loaderData;
   const { locale } = Route.useRouteContext();
+  const navigate = useNavigate();
   const sectionsRef = useRef<HTMLElement[]>([]);
   const canopyRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLElement>(null);
-  const navigateWithTransition = useFluidTransition();
   const [showCanvas, setShowCanvas] = useState(false);
 
   useEffect(() => {
-    const isBot = /bot|crawl|spider|slurp|googlebot|bingbot|yandex/i.test(
-      navigator.userAgent,
-    );
-    if (!isBot) setShowCanvas(true);
+    if (!shouldEnableWindTunnel()) return;
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let idleId: number | null = null;
+
+    const show = () => {
+      timeoutId = setTimeout(() => setShowCanvas(true), 200);
+    };
+
+    if ("requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(show, { timeout: 800 });
+    } else {
+      show();
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (idleId !== null && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+    };
   }, []);
 
   // ── Measure umbrella canopy relative to hero section ──
@@ -258,7 +339,7 @@ function Home() {
                     fetchPriority={i === 0 ? "high" : undefined}
                     width={project.coverImage.width || 1347}
                     height={project.coverImage.height || 757}
-                    className="project-cover aspect-[16/9] w-full object-cover"
+                    className="project-cover aspect-video w-full object-cover"
                   />
                 </div>
               )}
@@ -292,9 +373,9 @@ function Home() {
                   <button
                     type="button"
                     onClick={() =>
-                      navigateWithTransition(
-                        localePath(`/projects/${project.slug}`, locale),
-                      )
+                      navigate({
+                        to: localePath(`/projects/${project.slug}`, locale),
+                      })
                     }
                     className="fluid-cta rounded-xl border px-5 py-2.5 text-sm font-semibold text-(--sea-ink)"
                   >

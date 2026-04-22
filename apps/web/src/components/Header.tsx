@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { Link } from "@tanstack/react-router";
 import { Sun, Moon } from "lucide-react";
 import { animateThemeTransition } from "@/lib/themeTransition";
 import type { UIStrings } from "@/functions/getGlobals";
 import type { Locale } from "@/lib/locale";
 import { localePath } from "@/lib/locale";
 import { useLangSwitch } from "@/hooks/useLangSwitch";
-import FluidLink from "./FluidLink";
 import HeaderDuck, { type HeaderDuckHandle } from "./HeaderDuck";
 
 function getSnapshot() {
@@ -106,12 +106,12 @@ export default function Header({
   return (
     <header className="sticky top-0 z-50 bg-(--header-bg) px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md">
       <nav className="page-wrap flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:py-4">
-        <FluidLink
+        <Link
           to={localePath("/", locale)}
-          className="header-logo shrink-0"
+          className="header-logo inline-flex shrink-0 items-center justify-center leading-none"
         >
           <HeaderDuck ref={duckRef} />
-        </FluidLink>
+        </Link>
 
         <h2 className="m-0 shrink-0 text-base font-semibold tracking-tight">
           {contactEmail && (
@@ -126,12 +126,12 @@ export default function Header({
         </h2>
 
         <div className="ml-auto flex items-center gap-1.5 sm:ml-0 sm:gap-2">
-          <FluidLink
+          <Link
             to={localePath("/about", locale)}
             className="rounded-xl px-3 py-2 text-sm text-(--sea-ink-soft) no-underline transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
           >
             {ui.navAbout}
-          </FluidLink>
+          </Link>
           <button
             type="button"
             onClick={toggleTheme}

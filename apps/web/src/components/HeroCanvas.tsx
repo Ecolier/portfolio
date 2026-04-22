@@ -1,20 +1,496 @@
-import { Canvas } from "@react-three/fiber";
-import TrippyPlane from "@/components/TrippyPlane";
+import { useEffect, useRef } from "react";
+import { windState } from "@/lib/canvasState";
+
+type Palette = {
+  bg: [number, number, number];
+  line: [number, number, number];
+  particle: [number, number, number];
+  visibilityBoost: number;
+};
+
+const PALETTES: Record<"light" | "dark", Palette> = {
+  light: {
+    bg: [0.91, 0.929, 0.953],
+    line: [0.102, 0.169, 0.251],
+    particle: [0.58, 0.68, 0.78],
+    visibilityBoost: 1,
+  },
+  dark: {
+    bg: [0.043, 0.067, 0.094],
+    line: [0.784, 0.855, 0.922],
+    particle: [0.5, 0.62, 0.76],
+    visibilityBoost: 3.0,
+  },
+};
+
+const DECAY_RATE = 6;
+
+const VERTEX_SHADER = `
+attribute vec2 a_position;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}
+`;
+
+const FRAGMENT_SHADER = `
+precision highp float;
+
+uniform float u_time;
+uniform vec2  u_res;
+uniform vec3  u_bgColor;
+uniform vec3  u_lineColor;
+uniform vec3  u_particleColor;
+uniform float u_visibilityBoost;
+uniform vec4  u_obs1;
+uniform vec4  u_obs2;
+uniform vec4  u_obs3;
+uniform vec4  u_obs4;
+uniform int   u_obsCount;
+
+float hash(float n) { return fract(sin(n * 127.1) * 43758.5453123); }
+
+vec4 getObs(int i) {
+  if (i == 0) return u_obs1;
+  if (i == 1) return u_obs2;
+  if (i == 2) return u_obs3;
+  return u_obs4;
+}
+
+void main() {
+  vec2  uv     = gl_FragCoord.xy / u_res;
+  float aspect = u_res.x / u_res.y;
+  vec2  p      = vec2(uv.x * aspect, uv.y);
+  float px     = 1.0 / u_res.y;
+
+  float a = 0.0;
+
+  if (u_obsCount > 0) {
+    float cL = 1e5, cR = -1e5, cB = 1e5, cT = -1e5;
+    for (int i = 0; i < 4; i++) {
+      if (i >= u_obsCount) break;
+      vec4 ob = getObs(i);
+      vec2 oc = vec2(ob.x * aspect, ob.y);
+      vec2 hs = vec2(ob.z * aspect, ob.w);
+      cL = min(cL, oc.x - hs.x);
+      cR = max(cR, oc.x + hs.x);
+      cB = min(cB, oc.y - hs.y);
+      cT = max(cT, oc.y + hs.y);
+    }
+
+    float margin = 0.02;
+    cL -= margin;
+    cR += margin;
+    cB -= margin * 0.5;
+    cT += margin * 0.5;
+
+    float rawLeftW  = max(cL, 0.001);
+    float rawRightW = max(aspect - cR, 0.001);
+    float obsCX     = (cL + cR) * 0.5;
+
+    float maxCorridorW = 0.38;
+    float leftW  = min(rawLeftW, maxCorridorW);
+    float rightW = min(rawRightW, maxCorridorW);
+    float leftStart  = cL - leftW;
+    float rightStart = cR;
+
+    float deathCeil = cT + 0.75;
+    float bStart = cB - 0.06;
+    float bEnd   = (cB + cT) * 0.5;
+    float b      = smoothstep(bStart, bEnd, p.y);
+
+    float converge = smoothstep(cT + 0.12, deathCeil - 0.05, p.y);
+    b = mix(b, 0.0, converge);
+
+    float venturiY = smoothstep(bStart, cB, p.y) * smoothstep(deathCeil, cT, p.y);
+    float venturi  = 1.0 + venturiY * 0.5;
+    float squeeze = b * (1.0 - converge);
+
+    for (int layer = 0; layer < 6; layer++) {
+      bool isBig = (layer >= 4);
+      float lSeed = isBig ? float(layer - 4) * 3000.0 + 7000.0 : float(layer) * 1000.0;
+      float lSpd  = isBig ? 0.06 + float(layer - 4) * 0.02
+                  : ((layer < 2) ? 0.09 : 0.16);
+      float lMaxA = isBig ? 0.20
+                  : ((layer < 2) ? 0.10 : 0.22);
+      float thick = px * (isBig ? 6.0 : 3.0);
+
+      for (int g = 0; g < 2; g++) {
+        float seed = lSeed + (g == 0 ? 0.0 : 500.0);
+
+        float sS, sW, tS, tW;
+        if (g == 0) {
+          sS = 0.0;
+          sW = obsCX;
+          tS = leftStart;
+          tW = leftW;
+        } else {
+          sS = obsCX;
+          sW = aspect - obsCX;
+          tS = rightStart;
+          tW = rightW;
+        }
+
+        float baseX = (1.0 - b) * sS + b * tS;
+        float scale = (1.0 - b) * sW + b * tW;
+        if (scale < px * 2.0) continue;
+
+        float t = (p.x - baseX) / scale;
+        if (t < -0.06 || t > 1.06) continue;
+
+        float laneSpacing = isBig ? 14.0 : 6.0;
+        float numLanes = clamp(floor(tW / (px * laneSpacing)), 2.0, 48.0);
+        float laneF = t * numLanes - 0.5;
+        float bLane = floor(laneF);
+
+        for (float di = 0.0; di <= 2.0; di += 1.0) {
+          float lane = bLane + di;
+          if (lane < 0.0 || lane >= numLanes) continue;
+
+          float lh = hash(lane * 127.1 + seed);
+          if (lh < 0.15) continue;
+
+          float laneT = (lane + 0.5) / numLanes;
+          laneT += (hash(lane * 311.7 + seed) - 0.5) * 0.5 / numLanes;
+
+          float sDist = (t - laneT) * scale;
+          if (abs(sDist) > thick * 3.0) continue;
+
+          float birthY = -0.3 - lh * 0.2;
+          float span   = 1.6 + lh * 0.4;
+          float spd    = lSpd + hash(lane * 41.3 + seed) * 0.03;
+          float cycle  = fract(u_time * spd / span + lh);
+          float headY  = birthY + cycle * span;
+          float life   = cycle;
+
+          float trailLen = isBig ? (0.10 + lh * 0.14) : (0.06 + lh * 0.10);
+          trailLen /= venturi;
+          trailLen *= smoothstep(0.0, 0.06, life);
+          trailLen *= smoothstep(1.0, 0.75, life);
+
+          float distY = headY - p.y;
+          float rad   = thick;
+          if (distY < -rad || distY > trailLen + rad) continue;
+
+          float swirlOn  = step(0.5, hash(lane * 83.9 + seed));
+          float swirlAmt = smoothstep(0.6, 1.0, life) * swirlOn;
+          float swirlDir = (hash(lane * 61.3 + seed) > 0.5) ? 1.0 : -1.0;
+          float swirl    = sin(distY * 35.0 + u_time * 2.5 + lh * 6.28)
+                         * swirlAmt * swirlDir * px * 3.0;
+
+          float finalDist = abs(sDist + swirl);
+          float hw = thick;
+          float hh = trailLen * 0.5;
+          vec2 q   = vec2(finalDist, abs(distY - hh)) - vec2(hw, hh) + rad;
+          float sdf = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - rad;
+
+          float lineA    = smoothstep(thick * 0.5, -thick * 0.3, sdf);
+          float tPos     = max(distY, 0.0) / max(trailLen, 0.001);
+          float tailFade = 1.0 - tPos * tPos;
+
+          float lifeA = smoothstep(1.0, 0.78, life);
+          lifeA *= smoothstep(-0.01, 0.02, headY - trailLen);
+
+          float fa = lineA * tailFade * lifeA * lMaxA * (0.5 + lh * 0.5);
+          fa *= 1.0 + squeeze * 0.2;
+          a = max(a, fa);
+        }
+      }
+    }
+  } else {
+    for (int layer = 0; layer < 6; layer++) {
+      bool isBig = (layer >= 4);
+      float seed = isBig ? float(layer - 4) * 373.0 + 7000.0 : float(layer) * 173.0;
+      float lSpd = isBig ? 0.06 + float(layer - 4) * 0.02
+                 : ((layer < 2) ? 0.09 : 0.16);
+      float lMaxA = isBig ? 0.20
+                  : ((layer < 2) ? 0.10 : 0.22);
+      float thick = px * (isBig ? 6.0 : 3.0);
+      float laneW = px * (isBig ? 14.0 : 6.0);
+      float laneIdx = floor(p.x / laneW);
+
+      for (float di = -1.0; di <= 1.0; di += 1.0) {
+        float lane = laneIdx + di;
+        float lh   = hash(lane * 127.1 + seed);
+        if (lh < 0.15) continue;
+
+        float laneX = (lane + 0.5) * laneW;
+        laneX += (hash(lane * 311.7 + seed) - 0.5) * laneW * 0.6;
+
+        float signedD = p.x - laneX;
+        if (abs(signedD) > thick * 2.0) continue;
+
+        float birthY = -0.10 - lh * 0.20;
+        float deathY = 1.0 + lh * 0.30;
+        float span   = deathY - birthY;
+        float spd    = lSpd + lh * 0.03;
+        float cycle  = fract(u_time * spd / span + lh);
+        float headY  = birthY + cycle * span;
+        float life   = cycle;
+
+        float trailLen = isBig ? (0.10 + lh * 0.14) : (0.06 + lh * 0.10);
+        trailLen *= smoothstep(0.0, 0.08, life);
+        trailLen *= smoothstep(1.0, 0.65, life);
+
+        float distY = headY - p.y;
+        float rad = thick;
+        if (distY < -rad || distY > trailLen + rad) continue;
+
+        float swirlOn    = step(0.45, hash(lane * 83.9 + seed));
+        float swirlPhase = smoothstep(0.55, 1.0, life) * swirlOn;
+        float swirlDir   = (hash(lane * 61.3 + seed) > 0.5) ? 1.0 : -1.0;
+        float swirl      = sin(distY * 35.0 + u_time * 2.5 + lh * 6.28)
+                         * swirlPhase * swirlDir * px * 3.0;
+
+        float finalDist = abs(signedD + swirl);
+        float hw = thick;
+        float hh = trailLen * 0.5;
+        vec2 q = vec2(finalDist, abs(distY - hh)) - vec2(hw, hh) + rad;
+        float sdf = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - rad;
+
+        float lineA    = smoothstep(thick * 0.5, -thick * 0.3, sdf);
+        float tPos     = max(distY, 0.0) / max(trailLen, 0.001);
+        float tailFade = 1.0 - tPos * tPos;
+
+        float lifeA = smoothstep(1.0, 0.70, life);
+        lifeA *= smoothstep(-0.02, 0.03, headY - trailLen);
+
+        float fa = lineA * tailFade * lifeA * lMaxA * (0.5 + lh * 0.5);
+        a = max(a, fa);
+      }
+    }
+  }
+
+  vec3 color = mix(u_particleColor, u_lineColor, clamp(a * 2.0, 0.0, 1.0) * 0.45);
+  float alpha = min(1.0, a * u_visibilityBoost);
+  gl_FragColor = vec4(color, alpha);
+}
+`;
+
+function getResolvedTheme(): "light" | "dark" {
+  if (typeof document === "undefined") return "light";
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
+
+function createShader(
+  gl: WebGLRenderingContext,
+  type: number,
+  source: string,
+): WebGLShader | null {
+  const shader = gl.createShader(type);
+  if (!shader) return null;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    return shader;
+  }
+  gl.deleteShader(shader);
+  return null;
+}
+
+function createProgram(gl: WebGLRenderingContext): WebGLProgram | null {
+  const vertexShader = createShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
+  const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
+  if (!vertexShader || !fragmentShader) return null;
+
+  const program = gl.createProgram();
+  if (!program) return null;
+
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
+
+  gl.deleteShader(vertexShader);
+  gl.deleteShader(fragmentShader);
+
+  if (gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    return program;
+  }
+
+  gl.deleteProgram(program);
+  return null;
+}
 
 export default function HeroCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const gl = canvas.getContext("webgl", {
+      alpha: true,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      premultipliedAlpha: false,
+      powerPreference: "high-performance",
+    });
+    if (!gl) return;
+
+    const canvasEl = canvas;
+    const glCtx = gl;
+    const program = createProgram(glCtx);
+    if (!program) return;
+
+    const positionLoc = glCtx.getAttribLocation(program, "a_position");
+    const uTime = glCtx.getUniformLocation(program, "u_time");
+    const uRes = glCtx.getUniformLocation(program, "u_res");
+    const uBgColor = glCtx.getUniformLocation(program, "u_bgColor");
+    const uLineColor = glCtx.getUniformLocation(program, "u_lineColor");
+    const uParticleColor = glCtx.getUniformLocation(program, "u_particleColor");
+    const uVisibilityBoost = glCtx.getUniformLocation(
+      program,
+      "u_visibilityBoost",
+    );
+    const uObs1 = glCtx.getUniformLocation(program, "u_obs1");
+    const uObs2 = glCtx.getUniformLocation(program, "u_obs2");
+    const uObs3 = glCtx.getUniformLocation(program, "u_obs3");
+    const uObs4 = glCtx.getUniformLocation(program, "u_obs4");
+    const uObsCount = glCtx.getUniformLocation(program, "u_obsCount");
+
+    const buffer = glCtx.createBuffer();
+    if (!buffer) {
+      glCtx.deleteProgram(program);
+      return;
+    }
+
+    glCtx.bindBuffer(glCtx.ARRAY_BUFFER, buffer);
+    glCtx.bufferData(
+      glCtx.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+      glCtx.STATIC_DRAW,
+    );
+
+    glCtx.useProgram(program);
+    glCtx.enableVertexAttribArray(positionLoc);
+    glCtx.vertexAttribPointer(positionLoc, 2, glCtx.FLOAT, false, 0, 0);
+    glCtx.clearColor(0, 0, 0, 0);
+    glCtx.enable(glCtx.BLEND);
+    glCtx.blendFunc(glCtx.SRC_ALPHA, glCtx.ONE_MINUS_SRC_ALPHA);
+
+    let raf = 0;
+    let last = performance.now();
+    const current = {
+      bg: [...PALETTES[getResolvedTheme()].bg] as [number, number, number],
+      line: [...PALETTES[getResolvedTheme()].line] as [number, number, number],
+      particle: [...PALETTES[getResolvedTheme()].particle] as [
+        number,
+        number,
+        number,
+      ],
+      visibilityBoost: PALETTES[getResolvedTheme()].visibilityBoost,
+    };
+    let target = PALETTES[getResolvedTheme()];
+
+    function resize() {
+      const rect = canvasEl.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+      canvasEl.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvasEl.height = Math.max(1, Math.floor(rect.height * dpr));
+      glCtx.viewport(0, 0, canvasEl.width, canvasEl.height);
+    }
+
+    function lerpToward(
+      from: [number, number, number],
+      to: [number, number, number],
+      t: number,
+    ) {
+      from[0] += (to[0] - from[0]) * t;
+      from[1] += (to[1] - from[1]) * t;
+      from[2] += (to[2] - from[2]) * t;
+    }
+
+    function render(now: number) {
+      const delta = Math.min((now - last) / 1000, 0.05);
+      last = now;
+      const factor = 1 - Math.exp(-DECAY_RATE * delta);
+
+      lerpToward(current.bg, target.bg, factor);
+      lerpToward(current.line, target.line, factor);
+      lerpToward(current.particle, target.particle, factor);
+      current.visibilityBoost +=
+        (target.visibilityBoost - current.visibilityBoost) * factor;
+
+      glCtx.clear(glCtx.COLOR_BUFFER_BIT);
+      glCtx.useProgram(program);
+
+      if (uTime) glCtx.uniform1f(uTime, now / 1000);
+      if (uRes) glCtx.uniform2f(uRes, canvasEl.width, canvasEl.height);
+      if (uBgColor) {
+        glCtx.uniform3f(uBgColor, current.bg[0], current.bg[1], current.bg[2]);
+      }
+      if (uLineColor) {
+        glCtx.uniform3f(
+          uLineColor,
+          current.line[0],
+          current.line[1],
+          current.line[2],
+        );
+      }
+      if (uParticleColor) {
+        glCtx.uniform3f(
+          uParticleColor,
+          current.particle[0],
+          current.particle[1],
+          current.particle[2],
+        );
+      }
+      if (uVisibilityBoost) {
+        glCtx.uniform1f(uVisibilityBoost, current.visibilityBoost);
+      }
+
+      const obs = windState.obstacles.slice(0, 4);
+      const packed = [uObs1, uObs2, uObs3, uObs4];
+      for (let i = 0; i < 4; i++) {
+        const loc = packed[i];
+        const ob = obs[i];
+        if (!loc) continue;
+        if (ob) {
+          glCtx.uniform4f(loc, ob.x, ob.y, ob.w, ob.h);
+        } else {
+          glCtx.uniform4f(loc, 0, 0, 0, 0);
+        }
+      }
+      if (uObsCount) glCtx.uniform1i(uObsCount, obs.length);
+
+      glCtx.drawArrays(glCtx.TRIANGLE_STRIP, 0, 4);
+      raf = requestAnimationFrame(render);
+    }
+
+    resize();
+    raf = requestAnimationFrame(render);
+
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(canvasEl);
+    const themeObserver = new MutationObserver(() => {
+      target = PALETTES[getResolvedTheme()];
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      resizeObserver.disconnect();
+      themeObserver.disconnect();
+      glCtx.deleteBuffer(buffer);
+      glCtx.deleteProgram(program);
+    };
+  }, []);
+
   return (
-    <Canvas
-      camera={{ position: [0, 3, 12], fov: 55, near: 0.1, far: 200 }}
-      gl={{ alpha: true }}
+    <canvas
+      ref={canvasRef}
       style={{
         width: "100%",
         height: "100%",
-        background: "transparent",
+        display: "block",
         pointerEvents: "none",
+        background: "transparent",
       }}
-      onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-    >
-      <TrippyPlane />
-    </Canvas>
+      aria-hidden="true"
+    />
   );
 }

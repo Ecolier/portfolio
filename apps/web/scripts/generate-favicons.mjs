@@ -17,11 +17,10 @@ const root = resolve(__dirname, "..");
 const assets = resolve(root, "assets");
 const pub = resolve(root, "public");
 
-const faviconSvg = readFileSync(resolve(assets, "duck_favicon.svg"));
 const lightSvg = readFileSync(resolve(assets, "duck_light.svg"));
 const darkSvg = readFileSync(resolve(assets, "duck_dark.svg"));
 
-// ── 1. Rasterize PNGs from the dedicated favicon SVG ───────────────
+// ── 1. Rasterize PNGs from the light SVG variant ───────────────────
 async function toPng(svgBuffer, size) {
   return sharp(svgBuffer, { density: 400 })
     .resize(size, size, {
@@ -33,12 +32,12 @@ async function toPng(svgBuffer, size) {
 }
 
 const [png16, png32, png48, png180, png192, png512] = await Promise.all([
-  toPng(faviconSvg, 16),
-  toPng(faviconSvg, 32),
-  toPng(faviconSvg, 48),
-  toPng(faviconSvg, 180),
-  toPng(faviconSvg, 192),
-  toPng(faviconSvg, 512),
+  toPng(lightSvg, 16),
+  toPng(lightSvg, 32),
+  toPng(lightSvg, 48),
+  toPng(lightSvg, 180),
+  toPng(lightSvg, 192),
+  toPng(lightSvg, 512),
 ]);
 
 // ── 2. Build favicon.ico (16×16 + 32×32 PNGs wrapped in ICO)

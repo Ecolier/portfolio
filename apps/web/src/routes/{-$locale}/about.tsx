@@ -1,5 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
-import FluidLink from "@/components/FluidLink";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { getAboutPage, getSiteSettings } from "@/functions/getGlobals";
 import type { Locale } from "@/lib/locale";
 import {
@@ -143,12 +142,12 @@ function About() {
               Get in touch
             </a>
           )}
-          <FluidLink
+          <Link
             to={localePath("/", locale)}
             className="inline-flex items-center gap-2 rounded-full border border-(--chip-line) px-4 py-2 text-sm text-(--sea-ink) no-underline transition hover:bg-(--link-bg-hover)"
           >
             {siteSettings.ui.ctaViewProjects}
-          </FluidLink>
+          </Link>
           {siteSettings.githubUrl && (
             <a
               href={siteSettings.githubUrl}
