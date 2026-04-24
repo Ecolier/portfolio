@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
-import { CMS_URL } from "@/lib/cms";
+import { CMS_URL, CMS_PUBLIC_URL } from "@/lib/cms";
 import { localeSchema } from "@/lib/locale";
 import { z } from "zod";
 
@@ -11,7 +11,9 @@ function normalizeProject(doc: ProjectDoc): Project {
   const coverImage =
     doc.coverImage && typeof doc.coverImage === "object"
       ? {
-          url: doc.coverImage.url ? `${CMS_URL}${doc.coverImage.url}` : "",
+          url: doc.coverImage.url
+            ? `${CMS_PUBLIC_URL}${doc.coverImage.url}`
+            : "",
           alt: doc.coverImage.alt,
         }
       : null;
