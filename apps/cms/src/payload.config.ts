@@ -14,6 +14,7 @@ import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Project } from './collections/Project'
 import { Tag } from './collections/Tag'
+import { migrations } from './migrations'
 
 import { HomePage } from './globals/HomePage'
 import { AboutPage } from './globals/AboutPage'
@@ -48,6 +49,7 @@ export default buildConfig({
   },
   db: mongooseAdapter({
     url: process.env.DATABASE_URL || '',
+    prodMigrations: migrations,
   }),
   sharp,
   plugins: [],
