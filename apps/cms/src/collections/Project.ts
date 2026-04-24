@@ -11,13 +11,13 @@ export const Project: CollectionConfig = {
   },
   fields: [
     {
-      name: 'Name',
+      name: 'name',
       type: 'text',
       required: true,
       localized: true,
     },
     {
-      name: 'Slug',
+      name: 'slug',
       type: 'text',
       required: true,
       unique: true,
@@ -26,7 +26,7 @@ export const Project: CollectionConfig = {
       },
     },
     {
-      name: 'Excerpt',
+      name: 'excerpt',
       type: 'textarea',
       maxLength: 160,
       localized: true,
@@ -35,7 +35,7 @@ export const Project: CollectionConfig = {
       },
     },
     {
-      name: 'CoverImage',
+      name: 'coverImage',
       type: 'upload',
       relationTo: 'media',
       admin: {
@@ -43,25 +43,25 @@ export const Project: CollectionConfig = {
       },
     },
     {
-      name: 'Keywords',
+      name: 'keywords',
       type: 'relationship',
       hasMany: true,
       relationTo: 'tag',
     },
     {
-      name: 'Company',
+      name: 'company',
       type: 'text',
     },
     {
-      name: 'Repository',
+      name: 'repository',
       type: 'text',
     },
     {
-      name: 'Website',
+      name: 'website',
       type: 'text',
     },
     {
-      name: 'Description',
+      name: 'description',
       type: 'richText',
       required: true,
       localized: true,

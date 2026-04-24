@@ -2,12 +2,11 @@ import {
   HeadContent,
   Outlet,
   Scripts,
-  ScriptOnce,
   createRootRouteWithContext,
+  useLocation,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { TanStackDevtools } from "@tanstack/react-devtools";
-import type { Locale } from "@/lib/locale";
+import { Suspense, lazy } from "react";
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type Locale } from "@/lib/locale";
 
 import appCss from "@/styles.css?url";
 
@@ -15,10 +14,16 @@ export interface RouterContext {
   locale: Locale;
 }
 
-// Runs inline during HTML parsing — sets theme class before any paint
-const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);root.style.colorScheme=resolved;document.cookie='theme='+resolved+';path=/;max-age=31536000;samesite=lax';var old=document.querySelector('meta[name="theme-color"]');if(old)old.remove();var m=document.createElement('meta');m.name='theme-color';m.content=resolved==='dark'?'#0b1118':'#edf1f6';document.head.appendChild(m);}catch(e){}})();`;
+// Theme-color hex values must stay in sync with --bg-base in styles.css
+const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);root.style.colorScheme=resolved;document.cookie='theme='+resolved+';path=/;max-age=31536000;samesite=lax';var old=document.querySelector('meta[name="theme-color"]');if(old)old.remove();var m=document.createElement('meta');m.name='theme-color';m.content=resolved==='dark'?'#0b1118':'#e8edf3';document.head.appendChild(m);}catch(e){}})();`;
 
-const LANG_INIT_SCRIPT = `(function(){var s=location.pathname.split('/');document.documentElement.lang=s[1]==='fr'?'fr':'en'})();`;
+const TanStackRouterDevtools = import.meta.env.DEV
+  ? lazy(() =>
+      import("@tanstack/react-router-devtools").then((mod) => ({
+        default: mod.TanStackRouterDevtools,
+      })),
+    )
+  : () => null;
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
@@ -68,29 +73,26 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation();
+  const segment = pathname.split("/")[1];
+  const lang: Locale = (SUPPORTED_LOCALES as string[]).includes(segment)
+    ? (segment as Locale)
+    : DEFAULT_LOCALE;
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
       <body
-        className="font-sans antialiased wrap-anywhere selection:bg-(--selection-bg) flex flex-col min-h-[100dvh]"
+        className="font-sans antialiased wrap-anywhere selection:bg-(--selection-bg) flex flex-col min-h-dvh"
         suppressHydrationWarning
       >
-        <ScriptOnce children={THEME_INIT_SCRIPT} />
-        <ScriptOnce children={LANG_INIT_SCRIPT} />
         {children}
-        <TanStackDevtools
-          config={{
-            position: "bottom-right",
-          }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+        <Suspense fallback={null}>
+          <TanStackRouterDevtools position="bottom-right" />
+        </Suspense>
         <Scripts />
       </body>
     </html>

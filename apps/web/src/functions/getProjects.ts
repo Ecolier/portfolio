@@ -1,108 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
+import { CMS_URL } from "@/lib/cms";
+import { localeSchema } from "@/lib/locale";
 import { z } from "zod";
-import type { SerializedEditorState } from "@payloadcms/richtext-lexical/lexical";
-import type { Locale } from "@/lib/locale";
-import { CMS_URL, CMS_PUBLIC_URL } from "@/lib/cms";
 
-const localeSchema = z.enum(["en", "fr"]);
+import type { Project as ProjectDoc } from "@portfolio/types";
+import type { Project } from "#/types/project";
 
-interface MediaDoc {
-  id: string;
-  url: string;
-  alt: string;
-  width?: number;
-  height?: number;
-}
-
-interface ProjectDoc {
-  id: string;
-  Name: string;
-  Slug: string;
-  Excerpt?: string | null;
-  CoverImage?: MediaDoc | string | null;
-  Keywords?: ({ Name: string; id: string } | string)[] | string | null;
-  Company?: string | null;
-  Repository?: string | null;
-  Website?: string | null;
-  Description: SerializedEditorState | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Project {
-  id: string;
-  slug: string;
-  name: string;
-  excerpt: string | null;
-  coverImage: {
-    url: string;
-    alt: string;
-    width: number | null;
-    height: number | null;
-  } | null;
-  keywords: string[];
-  company: string | null;
-  repository: string | null;
-  website: string | null;
-  description: string;
-  descriptionRich: SerializedEditorState | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-function extractText(node: unknown): string {
-  if (typeof node !== "object" || node === null) return "";
-  const n = node as Record<string, unknown>;
-  if (typeof n.text === "string") return n.text;
-  if (Array.isArray(n.children)) return n.children.map(extractText).join("");
-  return "";
-}
-
-function normalizeKeywords(keywords: ProjectDoc["Keywords"]): string[] {
-  if (!keywords) return [];
-  if (typeof keywords === "string")
-    return keywords
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-  return keywords
-    .map((k) => (typeof k === "object" && k !== null ? k.Name : null))
-    .filter((k): k is string => k !== null);
-}
-
-function normalizeCover(
-  cover: ProjectDoc["CoverImage"],
-): Project["coverImage"] {
-  if (!cover || typeof cover === "string") return null;
-  return {
-    url: `${CMS_PUBLIC_URL}${cover.url}`,
-    alt: cover.alt,
-    width: cover.width ?? null,
-    height: cover.height ?? null,
-  };
-}
-
-function mapProject(doc: ProjectDoc, joinSep: string): Project {
-  return {
-    id: doc.id,
-    slug: doc.Slug,
-    name: doc.Name,
-    excerpt: doc.Excerpt ?? null,
-    coverImage: normalizeCover(doc.CoverImage),
-    keywords: normalizeKeywords(doc.Keywords),
-    company: doc.Company ?? null,
-    repository: doc.Repository ?? null,
-    website: doc.Website ?? null,
-    descriptionRich: doc.Description ?? null,
-    description:
-      doc.Description?.root?.children
-        ?.map((block) => extractText(block))
-        .filter(Boolean)
-        .join(joinSep) ?? "",
-    createdAt: doc.createdAt,
-    updatedAt: doc.updatedAt,
-  };
+export function normalizeProject(doc: ProjectDoc): Project {
+  const coverImage =
+    doc.coverImage && typeof doc.coverImage === "object"
+      ? { url: doc.coverImage.url ?? "", alt: doc.coverImage.alt }
+      : null;
+  const keywords = (doc.keywords ?? []).map((kw) =>
+    typeof kw === "string" ? kw : kw.name,
+  );
+  return { ...doc, coverImage, keywords };
 }
 
 export const getProjects = createServerFn()
@@ -114,7 +27,7 @@ export const getProjects = createServerFn()
     if (!res.ok) throw new Error(`CMS responded ${res.status}`);
     const data = await res.json();
 
-    return (data.docs as ProjectDoc[]).map((doc) => mapProject(doc, " "));
+    return (data.docs as Project[]).map(normalizeProject);
   });
 
 export const getProject = createServerFn()
@@ -125,8 +38,8 @@ export const getProject = createServerFn()
     );
     if (!res.ok) throw new Error(`CMS responded ${res.status}`);
     const data = await res.json();
-    const doc = (data.docs as ProjectDoc[])[0];
+    const doc = data.docs[0];
     if (!doc) throw notFound();
 
-    return mapProject(doc, "\n\n");
+    return normalizeProject(doc as Project);
   });

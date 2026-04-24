@@ -9,6 +9,7 @@ import {
   SITE_URL,
   ogLocale,
   ogLocaleAlternates,
+  DEFAULT_LOCALE,
 } from "@/lib/locale";
 
 const localeRoute = getRouteApi("/{-$locale}");
@@ -27,16 +28,14 @@ export const Route = createFileRoute("/{-$locale}/projects/$slug")({
   gcTime: 5 * 60_000,
   head: ({ loaderData, params }) => {
     if (!loaderData) return {};
-    const locale = (params.locale ?? "en") as Locale;
+    const locale = (params.locale ?? DEFAULT_LOCALE) as Locale;
     const slug = params.slug;
     const basePath = `/projects/${slug}`;
     const canonical = localePath(basePath, locale);
     const canonicalUrl = `${SITE_URL}${canonical}`;
     const title = `${loaderData.name}${loaderData.company ? ` — ${loaderData.company}` : ""} | Evan Gruère`;
     const description =
-      loaderData.excerpt ||
-      loaderData.description?.slice(0, 160) ||
-      `${loaderData.name} — a project by Evan Gruère.`;
+      loaderData.excerpt || `${loaderData.name} — a project by Evan Gruère.`;
     return {
       meta: [
         { title },
@@ -55,7 +54,7 @@ export const Route = createFileRoute("/{-$locale}/projects/$slug")({
           ? [
               {
                 property: "og:image",
-                content: loaderData.coverImage.url,
+                content: loaderData.coverImage.url ?? undefined,
               },
               {
                 property: "og:image:alt",
@@ -64,13 +63,13 @@ export const Route = createFileRoute("/{-$locale}/projects/$slug")({
               { name: "twitter:card", content: "summary_large_image" },
               {
                 name: "twitter:image",
-                content: loaderData.coverImage.url,
+                content: loaderData.coverImage.url ?? undefined,
               },
             ]
           : [{ name: "twitter:card", content: "summary" }]),
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
-        ...(loaderData.keywords.length > 0
+        ...(loaderData.keywords?.length
           ? [{ name: "keywords", content: loaderData.keywords.join(", ") }]
           : []),
         {
@@ -127,6 +126,8 @@ function ProjectDetail() {
   const siteSettings = localeRoute.useLoaderData();
   const { locale } = Route.useRouteContext();
 
+  if (!project) return null;
+
   return (
     <main className="flex flex-1 flex-col">
       <section className="page-wrap flex flex-1 flex-col px-4 py-16 sm:py-24">
@@ -148,7 +149,7 @@ function ProjectDetail() {
             {project.name}
           </h1>
 
-          {project.keywords.length > 0 && (
+          {project.keywords && project.keywords.length > 0 && (
             <div className="mb-6 flex flex-wrap gap-2">
               {project.keywords.map((kw) => (
                 <span
@@ -161,9 +162,9 @@ function ProjectDetail() {
             </div>
           )}
 
-          {project.descriptionRich && (
+          {project.description && (
             <div className="max-w-3xl text-base leading-8 text-(--sea-ink-soft) [&_a]:underline [&_a]:underline-offset-4 [&_p+p]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6">
-              <RichText data={project.descriptionRich} />
+              <RichText data={project.description} />
             </div>
           )}
 

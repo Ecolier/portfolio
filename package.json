@@ -2,6 +2,10 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "generate:types": "turbo generate:types"
+  },
   "dependencies": {
     "@payloadcms/db-mongodb": "3.83.0",
     "@payloadcms/next": "3.83.0",

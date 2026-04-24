@@ -6,11 +6,11 @@ export const Tag: CollectionConfig = {
     read: () => true,
   },
   admin: {
-    useAsTitle: 'Name',
+    useAsTitle: 'name',
   },
   fields: [
     {
-      name: 'Name',
+      name: 'name',
       type: 'text',
       required: true,
     },

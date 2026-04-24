@@ -296,9 +296,15 @@ function Home() {
       <section
         ref={heroRef}
         className="relative grid snap-start grid-rows-[minmax(0,1fr)_auto] items-center justify-items-center px-4"
-        style={{ height: "calc(100svh - var(--header-h))" }}
+        style={{
+          height: "calc(100svh - var(--header-h))",
+          // DIAGNOSTIC: paint the theme bg directly on the hero section.
+          // If the flash still happens, the issue is above this element
+          // (paint holding / pre-CSS default / color-scheme race).
+          background: "var(--bg-base)",
+        }}
       >
-        {showCanvas && (
+        {false && showCanvas && (
           <div className="pointer-events-none absolute inset-0 z-0">
             <Suspense>
               <HeroCanvas active={isHeroVisible} />

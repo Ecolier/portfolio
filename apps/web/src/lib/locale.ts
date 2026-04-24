@@ -1,7 +1,15 @@
-export type Locale = "en" | "fr";
+import { z } from "zod";
+import type { Config } from "@portfolio/types";
 
-export const SUPPORTED_LOCALES: Locale[] = ["en", "fr"];
-export const DEFAULT_LOCALE: Locale = "en";
+export type Locale = Config["locale"];
+
+export const localeSchema = z.enum(["en", "fr"] as const satisfies readonly [
+  Locale,
+  ...Locale[],
+]);
+
+export const SUPPORTED_LOCALES = localeSchema.options;
+export const DEFAULT_LOCALE = "en" as const satisfies Locale;
 export const LOCALE_COOKIE = "locale";
 export const SITE_URL = "https://gruere.dev";
 

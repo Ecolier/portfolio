@@ -265,7 +265,7 @@ void main() {
 
   vec3 color = mix(u_particleColor, u_lineColor, clamp(a * 2.0, 0.0, 1.0) * 0.45);
   float alpha = min(1.0, a * u_visibilityBoost);
-  fragColor = vec4(color * alpha, alpha);
+  fragColor = vec4(mix(u_bgColor, color, alpha), 1.0);
 }
 `;
 
@@ -314,7 +314,25 @@ function createProgram(gl: WebGL2RenderingContext): WebGLProgram | null {
 }
 
 export default function HeroCanvas({ active = true }: { active?: boolean }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // DIAGNOSTIC: WebGL is disabled. If the white flash still happens with
+  // just this inert div, the flash is NOT coming from the WebGL canvas.
+  void active;
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        background: "var(--bg-base)",
+      }}
+    />
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _DISABLED_HeroCanvas({ active = true }: { active?: boolean }) {
+  const hostRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef(active);
   const syncActivityRef = useRef<(() => void) | null>(null);
 
@@ -325,11 +343,25 @@ export default function HeroCanvas({ active = true }: { active?: boolean }) {
   }, [active]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const host = hostRef.current;
+    if (!host) return;
+
+    // Create the canvas DETACHED from the DOM. This is the key to avoiding
+    // Chrome's white flash: Chrome promotes a <canvas> with a WebGL context
+    // to its own GPU layer the moment getContext() is called, and for one
+    // compositor frame that freshly-allocated layer is composited with its
+    // driver-default backing (white on most GPUs) before any drawArrays lands.
+    // By doing all init + the first draw off-DOM, the canvas only enters
+    // the tree when its backing store already contains real pixels, so
+    // there is no "empty layer" frame to leak.
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("aria-hidden", "true");
+    canvas.style.cssText =
+      "position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;";
 
     const gl = canvas.getContext("webgl2", {
       alpha: true,
+      premultipliedAlpha: true,
       antialias: false,
       depth: false,
       stencil: false,
@@ -338,7 +370,6 @@ export default function HeroCanvas({ active = true }: { active?: boolean }) {
     }) as WebGL2RenderingContext | null;
     if (!gl) return;
 
-    const canvasEl = canvas;
     const glCtx = gl;
     const program = createProgram(glCtx);
     if (!program) return;
@@ -375,31 +406,38 @@ export default function HeroCanvas({ active = true }: { active?: boolean }) {
     glCtx.useProgram(program);
     glCtx.enableVertexAttribArray(positionLoc);
     glCtx.vertexAttribPointer(positionLoc, 2, glCtx.FLOAT, false, 0, 0);
-    glCtx.clearColor(0, 0, 0, 0);
-    glCtx.enable(glCtx.BLEND);
-    glCtx.blendFunc(glCtx.ONE, glCtx.ONE_MINUS_SRC_ALPHA);
+
+    const initialPalette = PALETTES[getResolvedTheme()];
+    glCtx.clearColor(
+      initialPalette.bg[0],
+      initialPalette.bg[1],
+      initialPalette.bg[2],
+      1,
+    );
+    glCtx.clear(glCtx.COLOR_BUFFER_BIT);
 
     let raf = 0;
     let isAnimating = false;
+    let attached = false;
     let last = performance.now();
     const current = {
-      bg: [...PALETTES[getResolvedTheme()].bg] as [number, number, number],
-      line: [...PALETTES[getResolvedTheme()].line] as [number, number, number],
-      particle: [...PALETTES[getResolvedTheme()].particle] as [
-        number,
-        number,
-        number,
-      ],
-      visibilityBoost: PALETTES[getResolvedTheme()].visibilityBoost,
+      bg: [...initialPalette.bg] as [number, number, number],
+      line: [...initialPalette.line] as [number, number, number],
+      particle: [...initialPalette.particle] as [number, number, number],
+      visibilityBoost: initialPalette.visibilityBoost,
     };
-    let target = PALETTES[getResolvedTheme()];
+    let target = initialPalette;
 
-    function resize() {
-      const rect = canvasEl.getBoundingClientRect();
+    function sizeFromHost() {
+      // Size from the host div since the canvas may still be detached.
+      const rect = host!.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
-      canvasEl.width = Math.max(1, Math.floor(rect.width * dpr));
-      canvasEl.height = Math.max(1, Math.floor(rect.height * dpr));
-      glCtx.viewport(0, 0, canvasEl.width, canvasEl.height);
+      const w = Math.max(1, Math.floor(rect.width * dpr));
+      const h = Math.max(1, Math.floor(rect.height * dpr));
+      if (canvas.width !== w) canvas.width = w;
+      if (canvas.height !== h) canvas.height = h;
+      glCtx.viewport(0, 0, canvas.width, canvas.height);
+      glCtx.clear(glCtx.COLOR_BUFFER_BIT);
     }
 
     function lerpToward(
@@ -412,13 +450,7 @@ export default function HeroCanvas({ active = true }: { active?: boolean }) {
       from[2] += (to[2] - from[2]) * t;
     }
 
-    function render(now: number) {
-      if (!activeRef.current || document.visibilityState !== "visible") {
-        isAnimating = false;
-        raf = 0;
-        return;
-      }
-
+    function drawFrame(now: number) {
       const delta = Math.min((now - last) / 1000, 0.05);
       last = now;
       const factor = 1 - Math.exp(-DECAY_RATE * delta);
@@ -433,7 +465,7 @@ export default function HeroCanvas({ active = true }: { active?: boolean }) {
       glCtx.useProgram(program);
 
       if (uTime) glCtx.uniform1f(uTime, now / 1000);
-      if (uRes) glCtx.uniform2f(uRes, canvasEl.width, canvasEl.height);
+      if (uRes) glCtx.uniform2f(uRes, canvas.width, canvas.height);
       if (uBgColor) {
         glCtx.uniform3f(uBgColor, current.bg[0], current.bg[1], current.bg[2]);
       }
@@ -472,13 +504,22 @@ export default function HeroCanvas({ active = true }: { active?: boolean }) {
       if (uObsCount) glCtx.uniform1i(uObsCount, obs.length);
 
       glCtx.drawArrays(glCtx.TRIANGLE_STRIP, 0, 4);
+    }
+
+    function render(now: number) {
+      if (!activeRef.current || document.visibilityState !== "visible") {
+        isAnimating = false;
+        raf = 0;
+        return;
+      }
+      drawFrame(now);
       raf = requestAnimationFrame(render);
     }
 
     function syncActivity() {
       const shouldRun =
         activeRef.current && document.visibilityState === "visible";
-      if (shouldRun && !isAnimating) {
+      if (shouldRun && !isAnimating && attached) {
         isAnimating = true;
         last = performance.now();
         raf = requestAnimationFrame(render);
@@ -491,11 +532,29 @@ export default function HeroCanvas({ active = true }: { active?: boolean }) {
 
     syncActivityRef.current = syncActivity;
 
-    resize();
+    // 1. Size the detached canvas from the host's measured rect.
+    sizeFromHost();
+
+    // 2. Render the first real frame into the detached canvas. Because the
+    //    canvas is not in the DOM, Chrome has not yet promoted it to a GPU
+    //    layer, so there is no compositor activity tied to it here.
+    drawFrame(performance.now());
+
+    // 3. Force the GPU to execute the queued commands. finish() blocks
+    //    until they complete, guaranteeing the backing store has real
+    //    pixels before we let Chrome see the element.
+    glCtx.finish();
+
+    // 4. Attach. Now when Chrome promotes the canvas to a compositor layer,
+    //    its very first composited frame shows a backing store that already
+    //    contains the first rendered frame — no white flash is possible.
+    host.appendChild(canvas);
+    attached = true;
+
     syncActivity();
 
-    const resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(canvasEl);
+    const resizeObserver = new ResizeObserver(sizeFromHost);
+    resizeObserver.observe(host);
     const themeObserver = new MutationObserver(() => {
       target = PALETTES[getResolvedTheme()];
     });
@@ -513,20 +572,26 @@ export default function HeroCanvas({ active = true }: { active?: boolean }) {
       syncActivityRef.current = null;
       glCtx.deleteBuffer(buffer);
       glCtx.deleteProgram(program);
+      if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
     };
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
+    <div
+      ref={hostRef}
+      aria-hidden="true"
       style={{
+        position: "relative",
         width: "100%",
         height: "100%",
-        display: "block",
-        pointerEvents: "none",
-        background: "transparent",
+        // Host is a normal DOM element painted on the first frame with the
+        // theme background, so the hero region is never blank or white.
+        // The canvas is appended into this host only after its first draw
+        // has been flushed to the GPU.
+        background: "var(--bg-base)",
       }}
-      aria-hidden="true"
     />
   );
 }
+// Keep the disabled implementation referenced so TS does not complain.
+void _DISABLED_HeroCanvas;

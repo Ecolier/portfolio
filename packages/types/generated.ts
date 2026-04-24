@@ -179,24 +179,24 @@ export interface Media {
  */
 export interface Project {
   id: string;
-  Name: string;
+  name: string;
   /**
    * URL-friendly identifier, e.g. "portfolio-site".
    */
-  Slug: string;
+  slug: string;
   /**
    * Short summary (≤ 160 chars) used for meta descriptions and social cards.
    */
-  Excerpt?: string | null;
+  excerpt?: string | null;
   /**
    * Used for Open Graph / Twitter social cards.
    */
-  CoverImage?: (string | null) | Media;
-  Keywords?: (string | Tag)[] | null;
-  Company?: string | null;
-  Repository?: string | null;
-  Website?: string | null;
-  Description: {
+  coverImage?: (string | null) | Media;
+  keywords?: (string | Tag)[] | null;
+  company?: string | null;
+  repository?: string | null;
+  website?: string | null;
+  description: {
     root: {
       type: string;
       children: {
@@ -220,7 +220,7 @@ export interface Project {
  */
 export interface Tag {
   id: string;
-  Name: string;
+  name: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -351,15 +351,15 @@ export interface MediaSelect<T extends boolean = true> {
  * via the `definition` "project_select".
  */
 export interface ProjectSelect<T extends boolean = true> {
-  Name?: T;
-  Slug?: T;
-  Excerpt?: T;
-  CoverImage?: T;
-  Keywords?: T;
-  Company?: T;
-  Repository?: T;
-  Website?: T;
-  Description?: T;
+  name?: T;
+  slug?: T;
+  excerpt?: T;
+  coverImage?: T;
+  keywords?: T;
+  company?: T;
+  repository?: T;
+  website?: T;
+  description?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -368,7 +368,7 @@ export interface ProjectSelect<T extends boolean = true> {
  * via the `definition` "tag_select".
  */
 export interface TagSelect<T extends boolean = true> {
-  Name?: T;
+  name?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -578,9 +578,4 @@ export interface CollectionsWidget {
  */
 export interface Auth {
   [k: string]: unknown;
-}
-
-
-declare module 'payload' {
-  export interface GeneratedTypes extends Config {}
 }
