@@ -5,6 +5,7 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", ".output/**"]
     },
+    "@portfolio/types#build": {},
     "generate:types": {
       "outputs": ["../../packages/types/generated.ts"]
     },
