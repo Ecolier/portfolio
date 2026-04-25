@@ -12,7 +12,7 @@ import {
 } from "@/lib/locale";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { windState } from "@/lib/canvasState";
-import DuckMascot from "@/components/DuckMascot";
+import HeroDuck from "#/components/HeroDuck";
 
 const HeroCanvas = lazy(() => import("@/components/HeroCanvas"));
 
@@ -312,7 +312,7 @@ function Home() {
           </div>
         )}
         <div className="relative z-10 flex min-h-0 flex-col items-center">
-          <DuckMascot canopyRef={canopyRef}>
+          <HeroDuck canopyRef={canopyRef}>
             <h1 className="font-display animate-rise-in whitespace-pre-wrap text-center text-4xl font-bold text-(--sea-ink) drop-shadow-[0_2px_12px_rgba(0,0,0,0.06)] sm:text-6xl md:text-7xl">
               {homePage.headline}
             </h1>
@@ -333,7 +333,7 @@ function Home() {
                 {siteSettings.ui.ctaContact}
               </a>
             )}
-          </DuckMascot>
+          </HeroDuck>
         </div>
 
         {/* Scroll cue */}

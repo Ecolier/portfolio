@@ -20,7 +20,7 @@ export type Project = Omit<
   description: {
     root: Omit<
       ProjectDoc["description"]["root"],
-      "children | coverImage" | "keywords"
+      "children" | "coverImage" | "keywords"
     > & {
       children: DescriptionNode[];
     };

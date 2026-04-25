@@ -2,15 +2,15 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import DuckSwayingSvg from "../../assets/duck_swaying.svg?react";
 
-interface DuckMascotProps {
+interface HeroDuckProps {
   children: React.ReactNode;
   canopyRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export default function DuckMascot({
+export default function HeroDuck({
   children,
   canopyRef: externalCanopyRef,
-}: DuckMascotProps) {
+}: HeroDuckProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const duckWrapRef = useRef<HTMLDivElement>(null);
   const internalCanopyRef = useRef<HTMLDivElement>(null);

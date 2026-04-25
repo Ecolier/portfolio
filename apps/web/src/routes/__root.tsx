@@ -5,6 +5,7 @@ import {
   createRootRouteWithContext,
   useLocation,
 } from "@tanstack/react-router";
+import { getCookie } from "@tanstack/react-start/server";
 import { Suspense, lazy } from "react";
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type Locale } from "@/lib/locale";
 
@@ -12,6 +13,7 @@ import appCss from "@/styles.css?url";
 
 export interface RouterContext {
   locale: Locale;
+  initialTheme: "light" | "dark";
 }
 
 // Theme-color hex values must stay in sync with --bg-base in styles.css
@@ -26,6 +28,12 @@ const TanStackRouterDevtools = import.meta.env.DEV
   : () => null;
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  beforeLoad: ({ context }) => {
+    const cookie = getCookie("theme");
+    const initialTheme: "light" | "dark" =
+      cookie === "dark" || cookie === "light" ? cookie : "light";
+    return { ...context, initialTheme };
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },

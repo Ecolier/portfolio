@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { Link } from "@tanstack/react-router";
 import { Sun, Moon } from "lucide-react";
-import { animateThemeTransition } from "@/lib/themeTransition";
-import type { UIStrings } from "@/functions/getGlobals";
+import type { UIStrings } from "#/types/globals";
 import type { Locale } from "@/lib/locale";
 import { localePath } from "@/lib/locale";
 import { useLangSwitch } from "@/hooks/useLangSwitch";
@@ -10,10 +9,6 @@ import HeaderDuck, { type HeaderDuckHandle } from "./HeaderDuck";
 
 function getSnapshot() {
   return document.documentElement.classList.contains("dark") ? "dark" : "light";
-}
-
-function getServerSnapshot(): "light" | "dark" {
-  return "light";
 }
 
 function subscribe(cb: () => void) {
@@ -31,6 +26,7 @@ interface HeaderProps {
   ui: UIStrings;
   locale: Locale;
   pathname: string;
+  initialTheme: "light" | "dark";
 }
 
 export default function Header({
@@ -39,11 +35,12 @@ export default function Header({
   ui,
   locale,
   pathname,
+  initialTheme,
 }: HeaderProps) {
   const resolved = useSyncExternalStore(
     subscribe,
     getSnapshot,
-    getServerSnapshot,
+    () => initialTheme,
   );
 
   const duckRef = useRef<HeaderDuckHandle>(null);
@@ -86,19 +83,24 @@ export default function Header({
 
   const toggleTheme = useCallback(() => {
     const next = resolved === "dark" ? "light" : "dark";
-    const root = document.documentElement;
-    root.classList.remove("light", "dark");
-    root.classList.add(next);
-    root.style.colorScheme = next;
-    localStorage.setItem("theme", next);
-    document.cookie = `theme=${next};path=/;max-age=31536000;samesite=lax`;
-    const old = document.querySelector('meta[name="theme-color"]');
-    if (old) old.remove();
-    const meta = document.createElement("meta");
-    meta.name = "theme-color";
-    meta.content = next === "dark" ? "#0b1118" : "#edf1f6";
-    document.head.appendChild(meta);
-    animateThemeTransition(next);
+    const apply = () => {
+      const root = document.documentElement;
+      root.classList.remove("light", "dark");
+      root.classList.add(next);
+      root.style.colorScheme = next;
+      localStorage.setItem("theme", next);
+      document.cookie = `theme=${next};path=/;max-age=31536000;samesite=lax`;
+      const metaEl =
+        document.querySelector<HTMLMetaElement>('meta[name="theme-color"]') ??
+        Object.assign(document.createElement("meta"), { name: "theme-color" });
+      metaEl.content = next === "dark" ? "#0b1118" : "#e8edf3";
+      if (!metaEl.parentNode) document.head.appendChild(metaEl);
+    };
+    if ("startViewTransition" in document) {
+      document.startViewTransition(apply);
+    } else {
+      apply();
+    }
   }, [resolved]);
 
   const { switchHref, handleLangSwitch } = useLangSwitch(locale, pathname);

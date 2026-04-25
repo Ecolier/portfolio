@@ -210,12 +210,20 @@ svg * {
   transition: none;
 }
 
-/* Suppress CSS transitions while JS drives the theme animation */
-html.theme-animating,
-html.theme-animating *,
-html.theme-animating *::before,
-html.theme-animating *::after {
-  transition: none !important;
+/* Theme toggle: cross-fade via View Transitions API */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 300ms;
+    animation-timing-function: ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms;
+  }
 }
 
 /* Header CTA and logo: hidden by default to prevent flash, revealed by JS */

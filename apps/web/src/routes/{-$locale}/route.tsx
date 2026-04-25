@@ -59,7 +59,7 @@ export const Route = createFileRoute("/{-$locale}")({
 
 function LocaleLayout() {
   const siteSettings = Route.useLoaderData();
-  const { locale } = Route.useRouteContext();
+  const { locale, initialTheme } = Route.useRouteContext();
   const { pathname } = useLocation();
 
   // Keep <html lang> in sync on every navigation
@@ -77,6 +77,7 @@ function LocaleLayout() {
         ui={siteSettings.ui}
         locale={locale}
         pathname={pathname}
+        initialTheme={initialTheme}
       />
       <div className="flex flex-1 flex-col">
         <Outlet />
