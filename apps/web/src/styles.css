@@ -79,7 +79,7 @@
   --inset-glint: rgba(255, 255, 255, 0.82);
   --kicker: #4a5e6e;
   --bg-base: #e8edf3;
-  --header-bg: rgba(240, 243, 248, 0.84);
+  --header-bg: #e8edf3;
   --chip-bg: rgba(230, 237, 245, 0.55);
   --chip-line: rgba(180, 195, 220, 0.45);
   --link-bg-hover: rgba(230, 237, 245, 0.6);
@@ -127,7 +127,7 @@
   --inset-glint: rgba(180, 210, 230, 0.1);
   --kicker: #8aabc2;
   --bg-base: #0b1118;
-  --header-bg: rgba(11, 17, 24, 0.8);
+  --header-bg: #0b1118;
   --chip-bg: rgba(20, 31, 46, 0.6);
   --chip-line: rgba(100, 130, 170, 0.3);
   --link-bg-hover: rgba(31, 41, 56, 0.6);
@@ -226,25 +226,16 @@ svg * {
   }
 }
 
-/* Header CTA and logo: hidden by default to prevent flash, revealed by JS */
-.header-cta,
-.header-logo {
-  opacity: 0;
-  transform: translateY(-4px);
+/* Keep the header stable across route transitions — prevents Safari backdrop-filter flash */
+::view-transition-old(site-header),
+::view-transition-new(site-header) {
+  animation: none;
 }
 
-html.header-ready .header-cta,
-html.header-ready .header-logo {
-  opacity: 1;
-  transform: none;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-html.header-ready[data-hero-visible] .header-cta,
-html.header-ready[data-hero-visible] .header-logo {
+html[data-hero-visible] .header-cta,
+html[data-hero-visible] .header-logo {
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-4px);
 }
 
 /* CTA button: transparent window that lets the fluid simulation show through */

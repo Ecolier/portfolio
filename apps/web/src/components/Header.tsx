@@ -74,9 +74,6 @@ export default function Header({
     } else {
       duck.show();
     }
-    requestAnimationFrame(() => {
-      document.documentElement.classList.add("header-ready");
-    });
 
     return () => observer.disconnect();
   }, []);

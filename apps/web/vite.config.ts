@@ -8,17 +8,16 @@ import svgr from "vite-plugin-svgr";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
-const config = defineConfig({
-  plugins: [
+export default defineConfig(({ command }) => {
+  const plugins = [
     devtools(),
     tailwindcss(),
     tanstackStart({
       prerender: {
         crawlLinks: true,
       },
-      autoCodeSplitting: true,
     }),
-    nitro(),
+    command === "build" ? nitro() : null,
     svgr({
       svgrOptions: {
         replaceAttrValues: {
@@ -36,10 +35,12 @@ const config = defineConfig({
       },
     }),
     viteReact(),
-  ],
-  resolve: {
-    tsconfigPaths: true,
-  },
-});
+  ];
 
-export default config;
+  return {
+    plugins,
+    resolve: {
+      tsconfigPaths: true,
+    },
+  };
+});

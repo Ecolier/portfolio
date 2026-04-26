@@ -45,7 +45,8 @@ export function getRouter() {
     defaultPreloadStaleTime: 0,
     defaultNotFoundComponent: NotFound,
     defaultErrorComponent: DefaultError,
-    context: { locale: "en" } satisfies RouterContext,
+    defaultViewTransition: true,
+    context: { locale: "en", initialTheme: "light" } satisfies RouterContext,
   });
 
   return router;
