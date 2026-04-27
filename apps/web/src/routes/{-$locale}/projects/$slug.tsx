@@ -163,8 +163,10 @@ function ProjectDetail() {
           )}
 
           {project.description && (
-            <div className="max-w-3xl text-base leading-8 text-(--sea-ink-soft) [&_a]:underline [&_a]:underline-offset-4 [&_p+p]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6">
-              <RichText data={project.description} />
+            <div className="max-w-3xl">
+              <div className="prose prose-sea">
+                <RichText data={project.description} />
+              </div>
             </div>
           )}
 

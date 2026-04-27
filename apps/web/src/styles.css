@@ -64,6 +64,26 @@
   background: color-mix(in oklab, var(--header-bg) 84%, transparent 16%);
 }
 
+@utility prose-sea {
+  --tw-prose-body: var(--sea-ink-soft);
+  --tw-prose-headings: var(--sea-ink);
+  --tw-prose-lead: var(--sea-ink-soft);
+  --tw-prose-links: var(--lagoon-deep);
+  --tw-prose-bold: var(--sea-ink);
+  --tw-prose-counters: var(--sea-ink-soft);
+  --tw-prose-bullets: var(--lagoon);
+  --tw-prose-hr: var(--line);
+  --tw-prose-quotes: var(--sea-ink);
+  --tw-prose-quote-borders: var(--lagoon);
+  --tw-prose-captions: var(--sea-ink-soft);
+  --tw-prose-kbd: var(--sea-ink);
+  --tw-prose-code: var(--sea-ink);
+  --tw-prose-pre-code: var(--foam);
+  --tw-prose-pre-bg: var(--sea-ink);
+  --tw-prose-th-borders: var(--line);
+  --tw-prose-td-borders: var(--line);
+}
+
 :root {
   --header-h: 3.5rem;
   --sea-ink: #1a2b40;
