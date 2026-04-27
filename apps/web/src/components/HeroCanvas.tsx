@@ -314,24 +314,6 @@ function createProgram(gl: WebGL2RenderingContext): WebGLProgram | null {
 }
 
 export default function HeroCanvas({ active = true }: { active?: boolean }) {
-  // DIAGNOSTIC: WebGL is disabled. If the white flash still happens with
-  // just this inert div, the flash is NOT coming from the WebGL canvas.
-  void active;
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-        background: "var(--bg-base)",
-      }}
-    />
-  );
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _DISABLED_HeroCanvas({ active = true }: { active?: boolean }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef(active);
   const syncActivityRef = useRef<(() => void) | null>(null);
@@ -593,5 +575,3 @@ function _DISABLED_HeroCanvas({ active = true }: { active?: boolean }) {
     />
   );
 }
-// Keep the disabled implementation referenced so TS does not complain.
-void _DISABLED_HeroCanvas;

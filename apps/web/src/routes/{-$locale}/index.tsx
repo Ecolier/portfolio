@@ -34,13 +34,6 @@ function shouldEnableWindTunnel(): boolean {
   ).connection;
   if (connection?.saveData) return false;
 
-  const memory = (navigator as Navigator & { deviceMemory?: number })
-    .deviceMemory;
-  if (typeof memory === "number" && memory <= 4) return false;
-
-  const cores = navigator.hardwareConcurrency;
-  if (typeof cores === "number" && cores <= 4) return false;
-
   const canvas = document.createElement("canvas");
   return !!(
     canvas.getContext("webgl") || canvas.getContext("experimental-webgl")
@@ -304,7 +297,7 @@ function Home() {
           background: "var(--bg-base)",
         }}
       >
-        {false && showCanvas && (
+        {showCanvas && (
           <div className="pointer-events-none absolute inset-0 z-0">
             <Suspense>
               <HeroCanvas active={isHeroVisible} />
