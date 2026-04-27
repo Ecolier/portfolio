@@ -78,10 +78,9 @@ function About() {
   const { locale } = Route.useRouteContext();
 
   return (
-    <main className="page-wrap px-4 py-12 bg-(--bg-base)/90 backdrop-blur-sm rounded-2xl my-4">
+    <main className="page-wrap px-6 sm:px-8 py-12 bg-(--bg-base)/90 backdrop-blur-sm rounded-2xl my-6 sm:my-10">
       {/* ── Hero: photo + intro ── */}
-      <section className="island-shell rounded-2xl p-6 sm:p-8">
-        <p className="island-kicker mb-2">About</p>
+      <section className="island-shell rounded-2xl p-8 sm:p-10">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
           {aboutPage.photo && (
             <img
@@ -105,7 +104,7 @@ function About() {
 
       {/* ── Right now ── */}
       {aboutPage.currentFocus && (
-        <section className="island-shell mt-6 rounded-2xl p-6 sm:p-8">
+        <section className="island-shell mt-6 rounded-2xl p-8 sm:p-10">
           <h2 className="section-title">Right now</h2>
           <p className="section-body">{aboutPage.currentFocus}</p>
         </section>
@@ -113,7 +112,7 @@ function About() {
 
       {/* ── Tools & craft ── */}
       {aboutPage.techIdentity && (
-        <section className="island-shell mt-6 rounded-2xl p-6 sm:p-8">
+        <section className="island-shell mt-6 rounded-2xl p-8 sm:p-10">
           <h2 className="section-title">Tools &amp; craft</h2>
           <p className="section-body">{aboutPage.techIdentity}</p>
         </section>
@@ -121,15 +120,14 @@ function About() {
 
       {/* ── When I'm not coding ── */}
       {aboutPage.interests && (
-        <section className="island-shell mt-6 rounded-2xl p-6 sm:p-8">
+        <section className="island-shell mt-6 rounded-2xl p-8 sm:p-10">
           <h2 className="section-title">When I&rsquo;m not coding</h2>
           <p className="section-body">{aboutPage.interests}</p>
         </section>
       )}
 
       {/* ── Let's talk ── */}
-      <section className="island-shell mt-6 rounded-2xl p-6 sm:p-8">
-        <h2 className="section-title">Let&rsquo;s talk</h2>
+      <section className="island-shell mt-6 rounded-2xl p-8 sm:p-10">
         {aboutPage.contactNote && (
           <p className="section-body mb-4">{aboutPage.contactNote}</p>
         )}

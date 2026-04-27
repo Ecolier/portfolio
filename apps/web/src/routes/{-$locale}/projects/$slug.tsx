@@ -130,7 +130,7 @@ function ProjectDetail() {
 
   return (
     <main className="flex flex-1 flex-col">
-      <section className="page-wrap flex flex-1 flex-col px-4 py-16 sm:py-24">
+      <section className="page-wrap flex flex-1 flex-col py-16 sm:py-24">
         <Link
           to={localePath("/", locale)}
           hash="projects"
@@ -140,7 +140,7 @@ function ProjectDetail() {
           {siteSettings.ui.ctaBackToProjects}
         </Link>
 
-        <article className="rounded-2xl border border-(--line) bg-(--surface) p-6 sm:p-10">
+        <article className="rounded-2xl border border-(--line) bg-(--surface) p-8 sm:p-12">
           {project.company && (
             <p className="island-kicker mb-2">{project.company}</p>
           )}

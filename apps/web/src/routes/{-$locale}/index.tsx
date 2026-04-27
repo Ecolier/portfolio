@@ -357,7 +357,7 @@ function Home() {
           }}
           data-project-idx={i}
           id={i === 0 ? "projects" : undefined}
-          className="project-section relative flex min-h-svh snap-start flex-col items-center justify-center px-4 py-24"
+          className="project-section relative flex min-h-svh snap-start flex-col items-center justify-center py-24"
         >
           {/* Content card */}
           <div className="page-wrap project-content relative z-10">
@@ -378,7 +378,7 @@ function Home() {
               )}
 
               {/* Text content */}
-              <div className="p-6 sm:p-8 md:p-10">
+              <div className="p-8 sm:p-10 lg:p-12">
                 {project.company && (
                   <p className="island-kicker mb-2">{project.company}</p>
                 )}

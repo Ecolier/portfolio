@@ -21,7 +21,7 @@
 /* ── Reusable component utilities ── */
 
 @utility page-wrap {
-  width: min(1080px, calc(100% - 2rem));
+  width: min(900px, calc(100% - clamp(2.5rem, 6vw, 4rem)));
   margin-inline: auto;
 }
 
