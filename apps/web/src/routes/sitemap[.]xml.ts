@@ -38,9 +38,9 @@ export const Route = createFileRoute("/sitemap.xml")({
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   ${urlEntry("/", { changefreq: "weekly", priority: 1.0 })}
   ${urlEntry("/about", { changefreq: "monthly", priority: 0.6 })}
-  ${(data.docs as Array<{ id: string; Slug?: string; updatedAt?: string }>)
+  ${(data.docs as Array<{ id: string; slug?: string; updatedAt?: string }>)
     .map((doc) =>
-      urlEntry(`/projects/${doc.Slug || doc.id}`, {
+      urlEntry(`/projects/${doc.slug || doc.id}`, {
         changefreq: "weekly",
         priority: 0.8,
         lastmod: doc.updatedAt

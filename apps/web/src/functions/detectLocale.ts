@@ -4,11 +4,11 @@ import {
   getCookie,
   setCookie,
 } from "@tanstack/react-start/server";
-import type { Locale } from "./getGlobals";
 import {
   SUPPORTED_LOCALES,
   LOCALE_COOKIE,
   parseAcceptLanguage,
+  type Locale,
 } from "@/lib/locale";
 
 /**
