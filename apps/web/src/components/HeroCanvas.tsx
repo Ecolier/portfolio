@@ -120,14 +120,14 @@ void main() {
     float db_dy = 6.0 * _bt * (1.0 - _bt) / _bRange * (1.0 - converge)
                - smoothstep(bStart, bEnd, p.y) * 6.0 * _ct * (1.0 - _ct) / _cRange;
 
-    for (int layer = 0; layer < 6; layer++) {
-      bool isBig = (layer >= 4);
-      float lSeed = isBig ? float(layer - 4) * 3000.0 + 7000.0 : float(layer) * 1000.0;
-      float lSpd  = isBig ? 0.06 + float(layer - 4) * 0.02
-                  : ((layer < 2) ? 0.09 : 0.16);
-      float lMaxA = isBig ? 0.20
-                  : ((layer < 2) ? 0.10 : 0.22);
-      float thick = px * (isBig ? 6.0 : 3.0);
+    for (int layer = 0; layer < 4; layer++) {
+      bool isBig = (layer >= 3);
+      float lSeed = isBig ? float(layer - 3) * 3000.0 + 7000.0 : float(layer) * 1000.0;
+      float lSpd  = isBig ? 0.06
+                  : ((layer < 2) ? 0.09 : 0.13);
+      float lMaxA = isBig ? 0.22
+                  : ((layer < 2) ? 0.13 : 0.24);
+      float thick = px * (isBig ? 8.0 : 5.0);
 
       for (int g = 0; g < 2; g++) {
         float seed = lSeed + (g == 0 ? 0.0 : 500.0);
@@ -152,8 +152,8 @@ void main() {
         float t = (p.x - baseX) / scale;
         if (t < -0.06 || t > 1.06) continue;
 
-        float laneSpacing = isBig ? 14.0 : 6.0;
-        float numLanes = clamp(floor(tW / (px * laneSpacing)), 2.0, 48.0);
+        float laneSpacing = isBig ? 22.0 : 11.0;
+        float numLanes = clamp(floor(tW / (px * laneSpacing)), 2.0, 28.0);
         float laneF = t * numLanes - 0.5;
         float bLane = floor(laneF);
 
@@ -162,7 +162,7 @@ void main() {
           if (lane < 0.0 || lane >= numLanes) continue;
 
           float lh = hash(lane * 127.1 + seed);
-          if (lh < 0.15) continue;
+          if (lh < 0.30) continue;
 
           float laneT = (lane + 0.5) / numLanes;
           laneT += (hash(lane * 311.7 + seed) - 0.5) * 0.5 / numLanes;
@@ -224,21 +224,21 @@ void main() {
       }
     }
   } else {
-    for (int layer = 0; layer < 6; layer++) {
-      bool isBig = (layer >= 4);
-      float seed = isBig ? float(layer - 4) * 373.0 + 7000.0 : float(layer) * 173.0;
-      float lSpd = isBig ? 0.06 + float(layer - 4) * 0.02
-                 : ((layer < 2) ? 0.09 : 0.16);
-      float lMaxA = isBig ? 0.20
-                  : ((layer < 2) ? 0.10 : 0.22);
-      float thick = px * (isBig ? 6.0 : 3.0);
-      float laneW = px * (isBig ? 14.0 : 6.0);
+    for (int layer = 0; layer < 4; layer++) {
+      bool isBig = (layer >= 3);
+      float seed = isBig ? float(layer - 3) * 373.0 + 7000.0 : float(layer) * 173.0;
+      float lSpd = isBig ? 0.06
+                 : ((layer < 2) ? 0.09 : 0.13);
+      float lMaxA = isBig ? 0.22
+                  : ((layer < 2) ? 0.13 : 0.24);
+      float thick = px * (isBig ? 8.0 : 5.0);
+      float laneW = px * (isBig ? 22.0 : 11.0);
       float laneIdx = floor(p.x / laneW);
 
       for (float di = -1.0; di <= 1.0; di += 1.0) {
         float lane = laneIdx + di;
         float lh   = hash(lane * 127.1 + seed);
-        if (lh < 0.15) continue;
+        if (lh < 0.30) continue;
 
         float laneX = (lane + 0.5) * laneW;
         laneX += (hash(lane * 311.7 + seed) - 0.5) * laneW * 0.6;

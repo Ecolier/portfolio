@@ -179,6 +179,7 @@ export interface Media {
  */
 export interface Project {
   id: string;
+  _order?: string | null;
   name: string;
   /**
    * URL-friendly identifier, e.g. "portfolio-site".
@@ -351,6 +352,7 @@ export interface MediaSelect<T extends boolean = true> {
  * via the `definition` "project_select".
  */
 export interface ProjectSelect<T extends boolean = true> {
+  _order?: T;
   name?: T;
   slug?: T;
   excerpt?: T;
