@@ -202,7 +202,7 @@ export default function Header({
 
   return (
     <header className="sticky top-0 z-50 bg-(--header-bg) px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md">
-      <div className="page-wrap grid grid-cols-[auto_1fr_auto] items-center gap-4 py-3 sm:py-4">
+      <div className="page-wrap flex items-center gap-3 py-3 sm:gap-4 sm:py-4">
         {/* Left: duck logo */}
         <Link
           to={localePath("/", locale)}
@@ -211,11 +211,14 @@ export default function Header({
           <HeaderDuck ref={duckRef} />
         </Link>
 
-        {/* Center: pill nav */}
-        <nav aria-label="Main" className="flex items-center justify-center">
+        {/* Center: pill nav — grows to fill space, pill itself never shrinks */}
+        <nav
+          aria-label="Main"
+          className="flex min-w-0 flex-1 items-center justify-center overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           <div
             ref={pillRef}
-            className="relative flex items-center gap-0.5 rounded-full border border-(--chip-line) bg-(--chip-bg) px-1 py-1 shadow-xs"
+            className="relative flex shrink-0 items-center gap-0.5 rounded-full border border-(--chip-line) bg-(--chip-bg) px-1 py-1 shadow-xs"
           >
             {/* Sliding active indicator */}
             <span
@@ -273,7 +276,7 @@ export default function Header({
         </nav>
 
         {/* Right: CTA + theme toggle */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex shrink-0 items-center gap-1.5">
           {contactEmail && (
             <a
               ref={ctaRef}
