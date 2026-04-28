@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    'blog-post': BlogPost;
     project: Project;
     tag: Tag;
     'payload-kv': PayloadKv;
@@ -80,6 +81,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'blog-post': BlogPostSelect<false> | BlogPostSelect<true>;
     project: ProjectSelect<false> | ProjectSelect<true>;
     tag: TagSelect<false> | TagSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -175,6 +177,59 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-post".
+ */
+export interface BlogPost {
+  id: string;
+  _order?: string | null;
+  title: string;
+  /**
+   * URL-friendly identifier, e.g. "building-my-portfolio".
+   */
+  slug: string;
+  /**
+   * Publication date displayed on the post.
+   */
+  publishedAt: string;
+  /**
+   * Short summary (≤ 160 chars) used for meta descriptions and social cards.
+   */
+  excerpt?: string | null;
+  /**
+   * Used for Open Graph / Twitter social cards.
+   */
+  coverImage?: (string | null) | Media;
+  tags?: (string | Tag)[] | null;
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tag".
+ */
+export interface Tag {
+  id: string;
+  name: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "project".
  */
 export interface Project {
@@ -217,16 +272,6 @@ export interface Project {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tag".
- */
-export interface Tag {
-  id: string;
-  name: string;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -256,6 +301,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: string | Media;
+      } | null)
+    | ({
+        relationTo: 'blog-post';
+        value: string | BlogPost;
       } | null)
     | ({
         relationTo: 'project';
@@ -346,6 +395,22 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-post_select".
+ */
+export interface BlogPostSelect<T extends boolean = true> {
+  _order?: T;
+  title?: T;
+  slug?: T;
+  publishedAt?: T;
+  excerpt?: T;
+  coverImage?: T;
+  tags?: T;
+  body?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -499,6 +564,7 @@ export interface SiteSetting {
    */
   ui?: {
     navAbout?: string | null;
+    navBlog?: string | null;
     navProjects?: string | null;
     ctaContact?: string | null;
     ctaViewProjects?: string | null;
@@ -553,6 +619,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
     | T
     | {
         navAbout?: T;
+        navBlog?: T;
         navProjects?: T;
         ctaContact?: T;
         ctaViewProjects?: T;

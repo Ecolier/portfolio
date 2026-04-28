@@ -44,12 +44,21 @@ export default function Header({
 
   const duckRef = useRef<HeaderDuckHandle>(null);
   const ctaRef = useRef<HTMLAnchorElement>(null);
+  const pillRef = useRef<HTMLDivElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+  const hasSlid = useRef(false);
 
   // Active nav link helper
-  const isActive = (href: string) =>
-    href === localePath("/", locale)
-      ? pathname === href
-      : pathname.startsWith(href);
+  // The home link (Projects) also owns /projects/* since there is no separate list page.
+  const isActive = (href: string) => {
+    if (href === localePath("/", locale)) {
+      return (
+        pathname === href ||
+        pathname.startsWith(localePath("/projects", locale))
+      );
+    }
+    return pathname.startsWith(href);
+  };
 
   useGSAP(() => {
     const duck = duckRef.current;
@@ -104,6 +113,66 @@ export default function Header({
     return () => observer.disconnect();
   }, []);
 
+  // Slide the pill indicator to the active link on every navigation.
+  useGSAP(() => {
+    const pill = pillRef.current;
+    const indicator = indicatorRef.current;
+    if (!pill || !indicator) return;
+
+    const activeLink = pill.querySelector<HTMLElement>('[data-active="true"]');
+    if (!activeLink) {
+      gsap.set(indicator, { opacity: 0 });
+      return;
+    }
+
+    const pillRect = pill.getBoundingClientRect();
+    const linkRect = activeLink.getBoundingClientRect();
+    const x = linkRect.left - pillRect.left;
+    const w = linkRect.width;
+
+    // First render or returning from a page with no active link: snap.
+    const currentOpacity = gsap.getProperty(indicator, "opacity") as number;
+    if (!hasSlid.current || currentOpacity === 0) {
+      hasSlid.current = true;
+      gsap.set(indicator, { x, width: w, opacity: 1 });
+      return;
+    }
+
+    // Rubber-band: stretch toward the target then snap to size.
+    // Moving right → right edge leads; moving left → left edge leads.
+    const prevX = gsap.getProperty(indicator, "x") as number;
+    const prevW = gsap.getProperty(indicator, "width") as number;
+    const movingRight = x > prevX;
+
+    gsap.killTweensOf(indicator);
+    const tl = gsap.timeline();
+
+    if (movingRight) {
+      // Stretch right edge to cover destination, then pull left edge in.
+      tl.to(indicator, {
+        width: x + w - prevX,
+        duration: 0.2,
+        ease: "power2.out",
+      }).to(
+        indicator,
+        { x, width: w, duration: 0.2, ease: "power2.in" },
+        ">-0.06",
+      );
+    } else {
+      // Stretch left edge to cover destination, then pull right edge in.
+      tl.to(indicator, {
+        x,
+        width: prevW + (prevX - x),
+        duration: 0.2,
+        ease: "power2.out",
+      }).to(
+        indicator,
+        { width: w, duration: 0.2, ease: "power2.in" },
+        ">-0.06",
+      );
+    }
+  }, [pathname]);
+
   const toggleTheme = useCallback(() => {
     const next = resolved === "dark" ? "light" : "dark";
     const apply = () => {
@@ -144,29 +213,58 @@ export default function Header({
 
         {/* Center: pill nav */}
         <nav aria-label="Main" className="flex items-center justify-center">
-          <div className="flex items-center gap-0.5 rounded-full border border-(--chip-line) bg-(--chip-bg) px-1 py-1 shadow-xs">
+          <div
+            ref={pillRef}
+            className="relative flex items-center gap-0.5 rounded-full border border-(--chip-line) bg-(--chip-bg) px-1 py-1 shadow-xs"
+          >
+            {/* Sliding active indicator */}
+            <span
+              ref={indicatorRef}
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-1 left-0 rounded-full bg-(--surface-strong)"
+              style={{ width: 0, opacity: 0 }}
+            />
             <Link
               to={localePath("/", locale)}
-              className={`rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition ${
+              data-active={isActive(localePath("/", locale))}
+              className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
                 isActive(localePath("/", locale))
-                  ? "bg-(--surface-strong) text-(--sea-ink)"
-                  : "text-(--sea-ink-soft) hover:bg-(--surface) hover:text-(--sea-ink)"
+                  ? "text-(--sea-ink)"
+                  : "text-(--sea-ink-soft) hover:text-(--sea-ink)"
               }`}
             >
               {ui.navProjects}
             </Link>
             <span
-              className="text-(--sea-ink-soft) opacity-30"
+              className="relative z-10 text-(--sea-ink-soft) opacity-30"
+              aria-hidden="true"
+            >
+              ·
+            </span>
+            <Link
+              to={localePath("/blog", locale)}
+              data-active={isActive(localePath("/blog", locale))}
+              className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
+                isActive(localePath("/blog", locale))
+                  ? "text-(--sea-ink)"
+                  : "text-(--sea-ink-soft) hover:text-(--sea-ink)"
+              }`}
+            >
+              {ui.navBlog}
+            </Link>
+            <span
+              className="relative z-10 text-(--sea-ink-soft) opacity-30"
               aria-hidden="true"
             >
               ·
             </span>
             <Link
               to={localePath("/about", locale)}
-              className={`rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition ${
+              data-active={isActive(localePath("/about", locale))}
+              className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
                 isActive(localePath("/about", locale))
-                  ? "bg-(--surface-strong) text-(--sea-ink)"
-                  : "text-(--sea-ink-soft) hover:bg-(--surface) hover:text-(--sea-ink)"
+                  ? "text-(--sea-ink)"
+                  : "text-(--sea-ink-soft) hover:text-(--sea-ink)"
               }`}
             >
               {ui.navAbout}

@@ -78,7 +78,7 @@ function About() {
   const { locale } = Route.useRouteContext();
 
   return (
-    <main className="page-wrap px-6 sm:px-8 py-12 bg-(--bg-base)/90 backdrop-blur-sm rounded-2xl my-6 sm:my-10">
+    <main className="page-wrap py-12 bg-(--bg-base)/90 backdrop-blur-sm rounded-2xl my-6 sm:my-10">
       {/* ── Hero: photo + intro ── */}
       <section className="island-shell rounded-2xl p-8 sm:p-10">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">

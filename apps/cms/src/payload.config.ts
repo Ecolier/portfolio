@@ -12,6 +12,7 @@ declare module 'payload' {
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { BlogPost } from './collections/BlogPost'
 import { Project } from './collections/Project'
 import { Tag } from './collections/Tag'
 import { migrations } from './migrations'
@@ -39,7 +40,7 @@ export default buildConfig({
     defaultLocale: 'en',
     fallback: true,
   },
-  collections: [Users, Media, Project, Tag],
+  collections: [Users, Media, BlogPost, Project, Tag],
   globals: [HomePage, AboutPage, SiteSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
