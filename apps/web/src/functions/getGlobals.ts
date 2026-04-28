@@ -67,6 +67,7 @@ export const getSiteSettings = createServerFn()
       githubUrl: data.githubUrl ?? null,
       ui: {
         navAbout: data.ui?.navAbout ?? "About",
+        navBlog: data.ui?.navBlog ?? "Blog",
         navProjects: data.ui?.navProjects ?? "Projects",
         ctaContact: data.ui?.ctaContact ?? "Get in Touch",
         ctaViewProjects: data.ui?.ctaViewProjects ?? "View Projects",

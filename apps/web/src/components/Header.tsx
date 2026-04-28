@@ -1,12 +1,11 @@
 import { useCallback, useRef, useSyncExternalStore } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { Sun, Moon } from "lucide-react";
 import type { UIStrings } from "#/types/globals";
 import type { Locale } from "@/lib/locale";
 import { localePath } from "@/lib/locale";
-import { useLangSwitch } from "@/hooks/useLangSwitch";
 import HeaderDuck, { type HeaderDuckHandle } from "./HeaderDuck";
 
 function getSnapshot() {
@@ -24,19 +23,15 @@ function subscribe(cb: () => void) {
 
 interface HeaderProps {
   contactEmail: string | null;
-  githubUrl: string | null;
   ui: UIStrings;
   locale: Locale;
-  pathname: string;
   initialTheme: "light" | "dark";
 }
 
 export default function Header({
   contactEmail,
-  githubUrl,
   ui,
   locale,
-  pathname,
   initialTheme,
 }: HeaderProps) {
   const resolved = useSyncExternalStore(
@@ -45,8 +40,16 @@ export default function Header({
     () => initialTheme,
   );
 
+  const { pathname } = useLocation();
+
   const duckRef = useRef<HeaderDuckHandle>(null);
   const ctaRef = useRef<HTMLAnchorElement>(null);
+
+  // Active nav link helper
+  const isActive = (href: string) =>
+    href === localePath("/", locale)
+      ? pathname === href
+      : pathname.startsWith(href);
 
   useGSAP(() => {
     const duck = duckRef.current;
@@ -128,11 +131,10 @@ export default function Header({
     }
   }, [resolved]);
 
-  const { switchHref, handleLangSwitch } = useLangSwitch(locale, pathname);
-
   return (
     <header className="sticky top-0 z-50 bg-(--header-bg) px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md">
-      <nav className="page-wrap flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:py-4">
+      <div className="page-wrap grid grid-cols-[auto_1fr_auto] items-center gap-4 py-3 sm:py-4">
+        {/* Left: duck logo */}
         <Link
           to={localePath("/", locale)}
           className="header-logo inline-flex shrink-0 items-center justify-center leading-none"
@@ -140,69 +142,64 @@ export default function Header({
           <HeaderDuck ref={duckRef} />
         </Link>
 
-        <h2 className="m-0 shrink-0 text-base font-semibold tracking-tight">
+        {/* Center: pill nav */}
+        <nav aria-label="Main" className="flex items-center justify-center">
+          <div className="flex items-center gap-0.5 rounded-full border border-(--chip-line) bg-(--chip-bg) px-1 py-1 shadow-xs">
+            <Link
+              to={localePath("/", locale)}
+              className={`rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition ${
+                isActive(localePath("/", locale))
+                  ? "bg-(--surface-strong) text-(--sea-ink)"
+                  : "text-(--sea-ink-soft) hover:bg-(--surface) hover:text-(--sea-ink)"
+              }`}
+            >
+              {ui.navProjects}
+            </Link>
+            <span
+              className="text-(--sea-ink-soft) opacity-30"
+              aria-hidden="true"
+            >
+              ·
+            </span>
+            <Link
+              to={localePath("/about", locale)}
+              className={`rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition ${
+                isActive(localePath("/about", locale))
+                  ? "bg-(--surface-strong) text-(--sea-ink)"
+                  : "text-(--sea-ink-soft) hover:bg-(--surface) hover:text-(--sea-ink)"
+              }`}
+            >
+              {ui.navAbout}
+            </Link>
+          </div>
+        </nav>
+
+        {/* Right: CTA + theme toggle */}
+        <div className="flex items-center gap-1.5">
           {contactEmail && (
             <a
               ref={ctaRef}
               href={`mailto:${contactEmail}`}
-              className="header-cta inline-flex items-center gap-2 rounded-full border border-(--chip-line) bg-(--chip-bg) px-3 py-1.5 text-sm text-(--sea-ink) no-underline shadow-[0_8px_24px_rgba(30,50,72,0.08)] transition-all duration-300 sm:px-4 sm:py-2"
+              className="header-cta hidden items-center gap-2 rounded-full border border-(--chip-line) bg-(--chip-bg) px-3 py-1.5 text-sm font-medium text-(--sea-ink) no-underline shadow-xs transition hover:bg-(--surface-strong) sm:inline-flex"
               onMouseEnter={() => duckRef.current?.bounce()}
             >
               {ui.ctaContact}
             </a>
           )}
-        </h2>
-
-        <div className="ml-auto flex items-center gap-1.5 sm:ml-0 sm:gap-2">
-          <Link
-            to={localePath("/about", locale)}
-            className="rounded-xl px-3 py-2 text-sm text-(--sea-ink-soft) no-underline transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
-          >
-            {ui.navAbout}
-          </Link>
           <button
             type="button"
             onClick={toggleTheme}
-            className="rounded-xl p-2 text-(--sea-ink-soft) transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
+            className="rounded-full p-2 text-(--sea-ink-soft) transition hover:bg-(--surface) hover:text-(--sea-ink)"
             aria-label={`Switch to ${resolved === "dark" ? "light" : "dark"} mode`}
           >
             {resolved === "dark" ? (
-              <Sun size={22} aria-hidden="true" />
+              <Sun size={18} aria-hidden="true" />
             ) : (
-              <Moon size={22} aria-hidden="true" />
+              <Moon size={18} aria-hidden="true" />
             )}
           </button>
-          {githubUrl && (
-            <a
-              href={githubUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="hidden rounded-xl p-2 text-(--sea-ink-soft) transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink) sm:block"
-            >
-              <span className="sr-only">GitHub</span>
-              <svg
-                viewBox="0 0 16 16"
-                aria-hidden="true"
-                width="24"
-                height="24"
-              >
-                <path
-                  fill="currentColor"
-                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
-                />
-              </svg>
-            </a>
-          )}
         </div>
-
-        <a
-          href={switchHref}
-          onClick={handleLangSwitch}
-          className="ml-auto hidden rounded-xl px-2 py-1.5 text-xs font-semibold uppercase text-(--sea-ink-soft) no-underline transition hover:bg-(--link-bg-hover) hover:text-(--sea-ink) sm:block"
-        >
-          {locale === "en" ? "FR" : "EN"}
-        </a>
-      </nav>
+      </div>
     </header>
   );
 }

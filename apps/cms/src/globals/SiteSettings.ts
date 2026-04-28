@@ -45,6 +45,7 @@ export const SiteSettings: GlobalConfig = {
       },
       fields: [
         { name: 'navAbout', type: 'text', localized: true, defaultValue: 'About' },
+        { name: 'navBlog', type: 'text', localized: true, defaultValue: 'Blog' },
         { name: 'navProjects', type: 'text', localized: true, defaultValue: 'Projects' },
         { name: 'ctaContact', type: 'text', localized: true, defaultValue: 'Get in Touch' },
         { name: 'ctaViewProjects', type: 'text', localized: true, defaultValue: 'View Projects' },

@@ -73,10 +73,8 @@ function LocaleLayout() {
     <>
       <Header
         contactEmail={siteSettings.contactEmail}
-        githubUrl={siteSettings.githubUrl}
         ui={siteSettings.ui}
         locale={locale}
-        pathname={pathname}
         initialTheme={initialTheme}
       />
       <div className="flex flex-1 flex-col">
@@ -86,11 +84,11 @@ function LocaleLayout() {
         <div className="page-wrap flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
           <span>©{new Date().getFullYear()} Evan Gruère & Duck</span>
           <div className="flex items-center gap-3">
-            {/* Language switcher — mobile only (desktop version is in the header) */}
+            {/* Language switcher */}
             <a
               href={switchHref}
               onClick={handleLangSwitch}
-              className="rounded-xl px-2 py-1.5 text-xs font-semibold uppercase no-underline transition hover:text-(--sea-ink) sm:hidden"
+              className="rounded-xl px-2 py-1.5 text-xs font-semibold uppercase no-underline transition hover:text-(--sea-ink)"
             >
               {locale === "en" ? "FR" : "EN"}
             </a>

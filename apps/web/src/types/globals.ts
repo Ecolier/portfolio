@@ -8,6 +8,7 @@ type BaseFields = "id" | "updatedAt" | "createdAt";
 
 export interface UIStrings {
   navAbout: string;
+  navBlog: string;
   navProjects: string;
   ctaContact: string;
   ctaViewProjects: string;
