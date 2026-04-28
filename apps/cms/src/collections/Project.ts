@@ -6,6 +6,7 @@ export const Project: CollectionConfig = {
   access: {
     read: () => true,
   },
+  orderable: true,
   hooks: {
     afterChange: [revalidateProject],
   },

@@ -582,11 +582,18 @@ export default function HeroCanvas({
     // new palette immediately so the "new" snapshot in the cross-fade already
     // shows the correct colours rather than a mid-lerp state.
     function onThemeSnap(e: Event) {
-      const theme = (e as CustomEvent<{ theme: "light" | "dark" }>).detail.theme;
+      const theme = (e as CustomEvent<{ theme: "light" | "dark" }>).detail
+        .theme;
       const p = PALETTES[theme];
-      current.bg[0] = p.bg[0]; current.bg[1] = p.bg[1]; current.bg[2] = p.bg[2];
-      current.line[0] = p.line[0]; current.line[1] = p.line[1]; current.line[2] = p.line[2];
-      current.particle[0] = p.particle[0]; current.particle[1] = p.particle[1]; current.particle[2] = p.particle[2];
+      current.bg[0] = p.bg[0];
+      current.bg[1] = p.bg[1];
+      current.bg[2] = p.bg[2];
+      current.line[0] = p.line[0];
+      current.line[1] = p.line[1];
+      current.line[2] = p.line[2];
+      current.particle[0] = p.particle[0];
+      current.particle[1] = p.particle[1];
+      current.particle[2] = p.particle[2];
       current.visibilityBoost = p.visibilityBoost;
       target = p;
     }
