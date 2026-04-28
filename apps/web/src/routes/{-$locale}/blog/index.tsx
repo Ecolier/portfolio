@@ -68,7 +68,7 @@ function BlogList() {
   const { locale } = Route.useRouteContext();
 
   return (
-    <main className="page-wrap px-4 py-12 sm:px-6">
+    <main className="page-wrap py-12">
       <h1 className="font-display mb-10 text-4xl font-bold text-(--sea-ink) sm:text-5xl">
         Blog
       </h1>

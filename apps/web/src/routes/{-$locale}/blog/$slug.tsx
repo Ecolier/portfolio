@@ -82,6 +82,10 @@ export const Route = createFileRoute("/{-$locale}/blog/$slug")({
           children: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "BlogPosting",
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": canonicalUrl,
+            },
             headline: post.title,
             description,
             datePublished: post.publishedAt,
@@ -110,7 +114,7 @@ function BlogPostPage() {
   const { locale } = localeRoute.useRouteContext();
 
   return (
-    <main className="page-wrap px-4 py-12 sm:px-6">
+    <main className="page-wrap py-12">
       {/* Back link */}
       <Link
         to={localePath("/blog", locale)}
@@ -169,7 +173,8 @@ function BlogPostPage() {
 
         {/* Body */}
         <div className="prose prose-neutral max-w-none dark:prose-invert">
-          <RichText data={post.body} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <RichText data={post.body as any} />
         </div>
       </article>
     </main>

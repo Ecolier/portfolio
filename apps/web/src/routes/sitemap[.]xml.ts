@@ -30,15 +30,28 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const res = await fetch(`${CMS_URL}/api/project?depth=0&limit=100`);
-        const data = res.ok ? await res.json() : { docs: [] };
+        const [projectsRes, blogRes] = await Promise.all([
+          fetch(`${CMS_URL}/api/project?depth=0&limit=100`),
+          fetch(`${CMS_URL}/api/blog-post?depth=0&limit=100&sort=-publishedAt`),
+        ]);
+        const projectsData = projectsRes.ok
+          ? await projectsRes.json()
+          : { docs: [] };
+        const blogData = blogRes.ok ? await blogRes.json() : { docs: [] };
 
         const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   ${urlEntry("/", { changefreq: "weekly", priority: 1.0 })}
   ${urlEntry("/about", { changefreq: "monthly", priority: 0.6 })}
-  ${(data.docs as Array<{ id: string; slug?: string; updatedAt?: string }>)
+  ${urlEntry("/blog", { changefreq: "weekly", priority: 0.8 })}
+  ${(
+    projectsData.docs as Array<{
+      id: string;
+      slug?: string;
+      updatedAt?: string;
+    }>
+  )
     .map((doc) =>
       urlEntry(`/projects/${doc.slug || doc.id}`, {
         changefreq: "weekly",
@@ -46,6 +59,26 @@ export const Route = createFileRoute("/sitemap.xml")({
         lastmod: doc.updatedAt
           ? new Date(doc.updatedAt).toISOString().split("T")[0]
           : undefined,
+      }),
+    )
+    .join("\n  ")}
+  ${(
+    blogData.docs as Array<{
+      id: string;
+      slug?: string;
+      publishedAt?: string;
+      updatedAt?: string;
+    }>
+  )
+    .map((doc) =>
+      urlEntry(`/blog/${doc.slug || doc.id}`, {
+        changefreq: "monthly",
+        priority: 0.7,
+        lastmod: doc.updatedAt
+          ? new Date(doc.updatedAt).toISOString().split("T")[0]
+          : doc.publishedAt
+            ? new Date(doc.publishedAt).toISOString().split("T")[0]
+            : undefined,
       }),
     )
     .join("\n  ")}
