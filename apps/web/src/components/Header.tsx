@@ -104,6 +104,11 @@ export default function Header({
   const toggleTheme = useCallback(() => {
     const next = resolved === "dark" ? "light" : "dark";
     const apply = () => {
+      // Snap the hero canvas to the new palette before the view-transition
+      // "new" snapshot is captured — prevents the canvas from lerping mid-fade.
+      document.dispatchEvent(
+        new CustomEvent("hero-canvas-theme-snap", { detail: { theme: next } }),
+      );
       const root = document.documentElement;
       root.classList.remove("light", "dark");
       root.classList.add(next);
