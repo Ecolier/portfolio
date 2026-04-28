@@ -97,24 +97,17 @@ export default function HeroDuck({
     ].filter(Boolean) as SVGElement[];
 
     const ctx = gsap.context(() => {
-      // ── Entrance ──
-      const entrance = gsap.timeline({ defaults: { ease: "power3.out" } });
-      entrance
-        .from(wrapper, { opacity: 0, y: 12, duration: 0.7 })
-        .from(canopy, { opacity: 0, y: 12, duration: 0.7 }, 0.15);
-
       if (prefersReduced) return;
 
       // ── Bob — duck + pole + canopy float together ──
-      entrance.add(() => {
-        const sway = gsap.timeline({
+      gsap
+        .timeline({
           repeat: -1,
           yoyo: true,
           defaults: { duration: 2, ease: "sine.inOut" },
-        });
-        sway.to(wrapper, { y: -3 }, 0);
-        sway.to(canopy, { y: -3 }, 0);
-      });
+        })
+        .to(wrapper, { y: -3 }, 0)
+        .to(canopy, { y: -3 }, 0);
 
       // Front wing
       if (wingFront) {

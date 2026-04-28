@@ -1,5 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import { getProjects } from "@/functions/getProjects";
 import { getHomePage, getSiteSettings } from "@/functions/getGlobals";
 import type { Locale } from "@/lib/locale";
@@ -133,8 +142,12 @@ function Home() {
   const sectionsRef = useRef<HTMLElement[]>([]);
   const canopyRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLElement>(null);
+  const heroContentRef = useRef<HTMLDivElement>(null);
+  const canvasWrapRef = useRef<HTMLDivElement>(null);
   const [isHeroVisible, setIsHeroVisible] = useState(true);
   const [showCanvas, setShowCanvas] = useState(false);
+  const [heroReady, setHeroReady] = useState(false);
+  const markHeroReady = useCallback(() => setHeroReady(true), []);
 
   useEffect(() => {
     if (!shouldEnableWindTunnel()) return;
@@ -159,6 +172,28 @@ function Home() {
       }
     };
   }, []);
+
+  // If the canvas is disabled (bots, reduced motion, old hardware),
+  // mark the hero ready immediately so content still fades in.
+  useEffect(() => {
+    if (shouldEnableWindTunnel()) return;
+    const raf = requestAnimationFrame(() => setHeroReady(true));
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // Reveal all hero content together once the canvas has its first frame.
+  useGSAP(
+    () => {
+      if (!heroReady) return;
+      gsap.to(
+        [heroContentRef.current, canvasWrapRef.current, cueRef.current].filter(
+          Boolean,
+        ),
+        { opacity: 1, duration: 0.55, ease: "power2.out" },
+      );
+    },
+    { dependencies: [heroReady] },
+  );
 
   // ── Measure umbrella canopy relative to hero section ──
   useEffect(() => {
@@ -298,30 +333,34 @@ function Home() {
         }}
       >
         {showCanvas && (
-          <div className="pointer-events-none absolute inset-0 z-0">
+          <div
+            ref={canvasWrapRef}
+            className="pointer-events-none absolute inset-0 z-0"
+            style={{ opacity: 0 }}
+          >
             <Suspense>
-              <HeroCanvas active={isHeroVisible} />
+              <HeroCanvas active={isHeroVisible} onReady={markHeroReady} />
             </Suspense>
           </div>
         )}
-        <div className="relative z-10 flex min-h-0 flex-col items-center">
+        <div
+          ref={heroContentRef}
+          className="relative z-10 flex min-h-0 flex-col items-center"
+          style={{ opacity: 0 }}
+        >
           <HeroDuck canopyRef={canopyRef}>
-            <h1 className="font-display animate-rise-in whitespace-pre-wrap text-center text-4xl font-bold text-(--sea-ink) drop-shadow-[0_2px_12px_rgba(0,0,0,0.06)] sm:text-6xl md:text-7xl">
+            <h1 className="font-display whitespace-pre-wrap text-center text-4xl font-bold text-(--sea-ink) drop-shadow-[0_2px_12px_rgba(0,0,0,0.06)] sm:text-6xl md:text-7xl">
               {homePage.headline}
             </h1>
             {homePage.subtitle && (
-              <p
-                className="animate-rise-in mt-3 whitespace-pre-wrap text-center text-base text-(--sea-ink-soft) sm:text-lg"
-                style={{ animationDelay: "120ms" }}
-              >
+              <p className="mt-3 whitespace-pre-wrap text-center text-base text-(--sea-ink-soft) sm:text-lg">
                 {homePage.subtitle}
               </p>
             )}
             {siteSettings.contactEmail && (
               <a
                 href={`mailto:${siteSettings.contactEmail}`}
-                className="animate-rise-in mt-6 inline-block rounded-full border border-(--line) bg-(--surface) px-6 py-2.5 text-sm font-semibold text-(--sea-ink) no-underline shadow-sm backdrop-blur-sm transition hover:bg-(--surface-strong) sm:text-base"
-                style={{ animationDelay: "200ms" }}
+                className="mt-6 inline-block rounded-full border border-(--line) bg-(--surface) px-6 py-2.5 text-sm font-semibold text-(--sea-ink) no-underline shadow-sm backdrop-blur-sm transition hover:bg-(--surface-strong) sm:text-base"
               >
                 {siteSettings.ui.ctaContact}
               </a>
@@ -333,8 +372,8 @@ function Home() {
         <button
           type="button"
           ref={cueRef}
-          className="animate-rise-in relative z-10 mb-8 flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-(--sea-ink-soft) transition-opacity duration-500"
-          style={{ animationDelay: "600ms" }}
+          className="relative z-10 mb-8 flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-(--sea-ink-soft) transition-opacity duration-500"
+          style={{ opacity: 0 }}
           onClick={() =>
             document
               .getElementById("projects")

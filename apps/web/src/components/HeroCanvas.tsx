@@ -108,6 +108,18 @@ void main() {
     float venturi  = 1.0 + venturiY * 0.5;
     float squeeze = b * (1.0 - converge);
 
+    // Analytical derivative of b w.r.t. p.y.
+    // b = smoothstep(bStart,bEnd,y) * (1 - smoothstep(cT+0.12, deathCeil-0.05, y))
+    // Used below to compute each lane's path slope so the SDF measures
+    // perpendicular distance rather than horizontal distance.
+    float _bRange = max(bEnd - bStart, 1e-5);
+    float _bt = clamp((p.y - bStart) / _bRange, 0.0, 1.0);
+    float _cEdge = cT + 0.12;
+    float _cRange = max((deathCeil - 0.05) - _cEdge, 1e-5);
+    float _ct = clamp((p.y - _cEdge) / _cRange, 0.0, 1.0);
+    float db_dy = 6.0 * _bt * (1.0 - _bt) / _bRange * (1.0 - converge)
+               - smoothstep(bStart, bEnd, p.y) * 6.0 * _ct * (1.0 - _ct) / _cRange;
+
     for (int layer = 0; layer < 6; layer++) {
       bool isBig = (layer >= 4);
       float lSeed = isBig ? float(layer - 4) * 3000.0 + 7000.0 : float(layer) * 1000.0;
@@ -158,6 +170,13 @@ void main() {
           float sDist = (t - laneT) * scale;
           if (abs(sDist) > thick * 3.0) continue;
 
+          // Lane path slope: dx_center / dy for this lane.
+          // cx(y) = baseX(y) + laneT * scale(y), so dcx/dy = db_dy * ((tS-sS) + laneT*(tW-sW))
+          // Dividing sDist by sqrt(1 + slope²) converts horizontal distance to
+          // perpendicular distance, keeping visual thickness constant when deflecting.
+          float dcx_dy = db_dy * ((tS - sS) + laneT * (tW - sW));
+          float invLen  = 1.0 / sqrt(1.0 + dcx_dy * dcx_dy);
+
           float birthY = -0.3 - lh * 0.2;
           float span   = 1.6 + lh * 0.4;
           float spd    = lSpd + hash(lane * 41.3 + seed) * 0.03;
@@ -180,11 +199,16 @@ void main() {
           float swirl    = sin(distY * 35.0 + u_time * 2.5 + lh * 6.28)
                          * swirlAmt * swirlDir * px * 3.0;
 
-          float finalDist = abs(sDist + swirl);
-          float hw = thick;
-          float hh = trailLen * 0.5;
-          vec2 q   = vec2(finalDist, abs(distY - hh)) - vec2(hw, hh) + rad;
-          float sdf = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - rad;
+          float finalDist = abs((sDist + swirl) * invLen);
+          // True screen-space capsule SDF for an angled lane.
+          // Key identity: finalDist² + along_tail² = screen_dist_to_head²
+          // so clamping along_tail to [0, trailLen_lane] gives exact circular caps.
+          float sDistSwirled  = sDist + swirl;
+          float len           = 1.0 / invLen;
+          float along_tail    = distY * len - sDistSwirled * dcx_dy * invLen;
+          float trailLen_lane = trailLen * len;
+          float excess        = along_tail - clamp(along_tail, 0.0, trailLen_lane);
+          float sdf           = sqrt(finalDist * finalDist + excess * excess) - rad;
 
           float lineA    = smoothstep(thick * 0.5, -thick * 0.3, sdf);
           float tPos     = max(distY, 0.0) / max(trailLen, 0.001);
@@ -313,10 +337,18 @@ function createProgram(gl: WebGL2RenderingContext): WebGLProgram | null {
   return null;
 }
 
-export default function HeroCanvas({ active = true }: { active?: boolean }) {
+export default function HeroCanvas({
+  active = true,
+  onReady,
+}: {
+  active?: boolean;
+  onReady?: () => void;
+}) {
   const hostRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef(active);
   const syncActivityRef = useRef<(() => void) | null>(null);
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
 
   activeRef.current = active;
 
@@ -532,6 +564,7 @@ export default function HeroCanvas({ active = true }: { active?: boolean }) {
     //    contains the first rendered frame — no white flash is possible.
     host.appendChild(canvas);
     attached = true;
+    onReadyRef.current?.();
 
     syncActivity();
 

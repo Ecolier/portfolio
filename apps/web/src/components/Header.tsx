@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { useCallback, useRef, useSyncExternalStore } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import { Link } from "@tanstack/react-router";
 import { Sun, Moon } from "lucide-react";
 import type { UIStrings } from "#/types/globals";
@@ -44,20 +46,38 @@ export default function Header({
   );
 
   const duckRef = useRef<HeaderDuckHandle>(null);
+  const ctaRef = useRef<HTMLAnchorElement>(null);
 
-  // Fly the header duck in/out based on hero visibility
-  useEffect(() => {
+  useGSAP(() => {
     const duck = duckRef.current;
-    if (!duck) return;
+    const cta = ctaRef.current;
+
+    // Hide both before the first paint regardless of route.
+    duck?.hide();
+    if (cta) gsap.set(cta, { opacity: 0 });
 
     const observer = new MutationObserver(() => {
-      const visible =
+      const heroVisible =
         document.documentElement.hasAttribute("data-hero-visible");
-
-      if (visible) {
-        duck.exit();
+      if (heroVisible) {
+        duck?.exit();
+        if (cta)
+          gsap.to(cta, {
+            opacity: 0,
+            duration: 0.08,
+            ease: "power2.in",
+            overwrite: true,
+          });
       } else {
-        duck.enter();
+        duck?.enter();
+        if (cta)
+          gsap.to(cta, {
+            opacity: 1,
+            duration: 0.1,
+            ease: "power2.out",
+            delay: 0.2,
+            overwrite: true,
+          });
       }
     });
 
@@ -66,13 +86,16 @@ export default function Header({
       attributeFilter: ["data-hero-visible"],
     });
 
-    // Snap to the correct state before the first mutation fires
-    const alreadyVisible =
-      document.documentElement.hasAttribute("data-hero-visible");
-    if (alreadyVisible) {
-      duck.hide();
-    } else {
-      duck.show();
+    // On non-hero pages (or hero scrolled past on load), animate straight in.
+    if (!document.documentElement.hasAttribute("data-hero-visible")) {
+      duck?.enter();
+      if (cta)
+        gsap.to(cta, {
+          opacity: 1,
+          duration: 0.1,
+          ease: "power2.out",
+          delay: 0.2,
+        });
     }
 
     return () => observer.disconnect();
@@ -115,6 +138,7 @@ export default function Header({
         <h2 className="m-0 shrink-0 text-base font-semibold tracking-tight">
           {contactEmail && (
             <a
+              ref={ctaRef}
               href={`mailto:${contactEmail}`}
               className="header-cta inline-flex items-center gap-2 rounded-full border border-(--chip-line) bg-(--chip-bg) px-3 py-1.5 text-sm text-(--sea-ink) no-underline shadow-[0_8px_24px_rgba(30,50,72,0.08)] transition-all duration-300 sm:px-4 sm:py-2"
               onMouseEnter={() => duckRef.current?.bounce()}
