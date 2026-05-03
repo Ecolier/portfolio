@@ -1,0 +1,8 @@
+<svg width="9" height="46" viewBox="0 0 9 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <clipPath id="nav-shape">
+    <path d="M3 0C8.99995 0 9 6 9 6V37L0 46V0H3Z"/>
+  </clipPath>
+</defs>
+<rect width="100%" height="100%" fill="rgba(237, 241, 248, 0.75)" clip-path="url(#nav-shape)"/>
+</svg>

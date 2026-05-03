@@ -6,50 +6,38 @@ import { Sun, Moon } from "lucide-react";
 import type { UIStrings } from "#/types/globals";
 import type { Locale } from "@/lib/locale";
 import { localePath } from "@/lib/locale";
-import HeaderDuck, { type HeaderDuckHandle } from "./HeaderDuck";
-
-function getSnapshot() {
-  return document.documentElement.classList.contains("dark") ? "dark" : "light";
-}
-
-function subscribe(cb: () => void) {
-  const observer = new MutationObserver(cb);
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["class"],
-  });
-  return () => observer.disconnect();
-}
+import { themeStore } from "#/lib/themeStore";
+import NavContainerRightSvg from "../../assets/nav-container-right.svg?react";
+import LogoContainerLeftSvg from "../../assets/logo-container-left.svg?react";
+import LogoContainerRightSvg from "../../assets/logo-container-right.svg?react";
+import LogoContainerSvg from "../../assets/logo.svg?react";
 
 interface HeaderProps {
   contactEmail: string | null;
   ui: UIStrings;
   locale: Locale;
-  initialTheme: "light" | "dark";
+  theme: "light" | "dark";
 }
 
 export default function Header({
   contactEmail,
   ui,
   locale,
-  initialTheme,
+  theme,
 }: HeaderProps) {
   const resolved = useSyncExternalStore(
-    subscribe,
-    getSnapshot,
-    () => initialTheme,
+    themeStore.subscribe,
+    themeStore.getSnapshot,
+    () => theme,
   );
 
   const { pathname } = useLocation();
 
-  const duckRef = useRef<HeaderDuckHandle>(null);
   const ctaRef = useRef<HTMLAnchorElement>(null);
   const pillRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const hasSlid = useRef(false);
 
-  // Active nav link helper
-  // The home link (Projects) also owns /projects/* since there is no separate list page.
   const isActive = (href: string) => {
     if (href === localePath("/", locale)) {
       return (
@@ -59,59 +47,6 @@ export default function Header({
     }
     return pathname.startsWith(href);
   };
-
-  useGSAP(() => {
-    const duck = duckRef.current;
-    const cta = ctaRef.current;
-
-    // Hide both before the first paint regardless of route.
-    duck?.hide();
-    if (cta) gsap.set(cta, { opacity: 0 });
-
-    const observer = new MutationObserver(() => {
-      const heroVisible =
-        document.documentElement.hasAttribute("data-hero-visible");
-      if (heroVisible) {
-        duck?.exit();
-        if (cta)
-          gsap.to(cta, {
-            opacity: 0,
-            duration: 0.08,
-            ease: "power2.in",
-            overwrite: true,
-          });
-      } else {
-        duck?.enter();
-        if (cta)
-          gsap.to(cta, {
-            opacity: 1,
-            duration: 0.1,
-            ease: "power2.out",
-            delay: 0.2,
-            overwrite: true,
-          });
-      }
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-hero-visible"],
-    });
-
-    // On non-hero pages (or hero scrolled past on load), animate straight in.
-    if (!document.documentElement.hasAttribute("data-hero-visible")) {
-      duck?.enter();
-      if (cta)
-        gsap.to(cta, {
-          opacity: 1,
-          duration: 0.1,
-          ease: "power2.out",
-          delay: 0.2,
-        });
-    }
-
-    return () => observer.disconnect();
-  }, []);
 
   // Slide the pill indicator to the active link on every navigation.
   useGSAP(() => {
@@ -201,88 +136,95 @@ export default function Header({
   }, [resolved]);
 
   return (
-    <header className="sticky top-0 z-50 bg-(--header-bg) px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md">
-      <div className="page-wrap flex items-center gap-3 py-3 sm:gap-4 sm:py-4">
-        {/* Left: duck logo */}
-        <Link
-          to={localePath("/", locale)}
-          className="header-logo inline-flex shrink-0 items-center justify-center leading-none"
+    <header className="fixed w-full top-0 z-50 pt-[env(safe-area-inset-top)]">
+      <div className="page-wrap flex items-center py-3 sm:py-4">
+        <div
+          className="flex items-center backdrop-blur-md"
+          style={{
+            maskImage: "url(full-menu.svg)",
+            maskRepeat: "no-repeat",
+            maskSize: "100% 100%",
+          }}
         >
-          <HeaderDuck ref={duckRef} />
-        </Link>
-
-        {/* Center: pill nav — grows to fill space, pill itself never shrinks */}
-        <nav
-          aria-label="Main"
-          className="flex min-w-0 flex-1 items-center justify-center overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          <div
-            ref={pillRef}
-            className="relative flex shrink-0 items-center gap-0.5 rounded-full border border-(--chip-line) bg-(--chip-bg) px-1 py-1 shadow-xs"
+          <Link
+            to={localePath("/", locale)}
+            className="header-logo inline-flex shrink-0 items-center justify-center leading-none"
           >
-            {/* Sliding active indicator */}
-            <span
-              ref={indicatorRef}
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-y-1 left-0 rounded-full bg-(--surface-strong)"
-              style={{ width: 0, opacity: 0 }}
-            />
-            <Link
-              to={localePath("/", locale)}
-              data-active={isActive(localePath("/", locale))}
-              className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
-                isActive(localePath("/", locale))
-                  ? "text-(--sea-ink)"
-                  : "text-(--sea-ink-soft) hover:text-(--sea-ink)"
-              }`}
+            <LogoContainerLeftSvg />
+            <LogoContainerSvg />
+            <LogoContainerRightSvg />
+          </Link>
+          <nav
+            aria-label="Main"
+            className="flex min-w-0 items-center overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden h-11.5 bg-(--header-bg)"
+          >
+            <div
+              ref={pillRef}
+              className="relative flex shrink-0 items-center gap-0.5 rounded-full px-1 py-1"
             >
-              {ui.navProjects}
-            </Link>
-            <span
-              className="relative z-10 text-(--sea-ink-soft) opacity-30"
-              aria-hidden="true"
-            >
-              ·
-            </span>
-            <Link
-              to={localePath("/blog", locale)}
-              data-active={isActive(localePath("/blog", locale))}
-              className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
-                isActive(localePath("/blog", locale))
-                  ? "text-(--sea-ink)"
-                  : "text-(--sea-ink-soft) hover:text-(--sea-ink)"
-              }`}
-            >
-              {ui.navBlog}
-            </Link>
-            <span
-              className="relative z-10 text-(--sea-ink-soft) opacity-30"
-              aria-hidden="true"
-            >
-              ·
-            </span>
-            <Link
-              to={localePath("/about", locale)}
-              data-active={isActive(localePath("/about", locale))}
-              className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
-                isActive(localePath("/about", locale))
-                  ? "text-(--sea-ink)"
-                  : "text-(--sea-ink-soft) hover:text-(--sea-ink)"
-              }`}
-            >
-              {ui.navAbout}
-            </Link>
-          </div>
-        </nav>
-
-        {/* Right: CTA + theme toggle */}
-        <div className="flex shrink-0 items-center gap-1.5">
+              {/* Sliding active indicator */}
+              <span
+                ref={indicatorRef}
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-1 left-0 rounded-full"
+                style={{ width: 0, opacity: 0 }}
+              />
+              <Link
+                to={localePath("/", locale)}
+                data-active={isActive(localePath("/", locale))}
+                className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
+                  isActive(localePath("/", locale))
+                    ? "text-(--sea-ink)"
+                    : "text-(--sea-ink-soft) hover:text-(--sea-ink)"
+                }`}
+              >
+                {ui.navProjects}
+              </Link>
+              <span
+                className="relative z-10 text-(--sea-ink-soft) opacity-30"
+                aria-hidden="true"
+              >
+                ·
+              </span>
+              <Link
+                to={localePath("/blog", locale)}
+                data-active={isActive(localePath("/blog", locale))}
+                className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
+                  isActive(localePath("/blog", locale))
+                    ? "text-(--sea-ink)"
+                    : "text-(--sea-ink-soft) hover:text-(--sea-ink)"
+                }`}
+              >
+                {ui.navBlog}
+              </Link>
+              <span
+                className="relative z-10 text-(--sea-ink-soft) opacity-30"
+                aria-hidden="true"
+              >
+                ·
+              </span>
+              <Link
+                to={localePath("/about", locale)}
+                data-active={isActive(localePath("/about", locale))}
+                className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
+                  isActive(localePath("/about", locale))
+                    ? "text-(--sea-ink)"
+                    : "text-(--sea-ink-soft) hover:text-(--sea-ink)"
+                }`}
+              >
+                {ui.navAbout}
+              </Link>
+            </div>
+          </nav>
+          <NavContainerRightSvg preserveAspectRatio="none" />
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5 ml-auto">
           {contactEmail && (
             <a
               ref={ctaRef}
               href={`mailto:${contactEmail}`}
               className="header-cta hidden items-center gap-2 rounded-full border border-(--chip-line) bg-(--chip-bg) px-3 py-1.5 text-sm font-medium text-(--sea-ink) no-underline shadow-xs transition hover:bg-(--surface-strong) sm:inline-flex"
-              onMouseEnter={() => duckRef.current?.bounce()}
+              onMouseEnter={() => logoRef.current?.bounce()}
             >
               {ui.ctaContact}
             </a>

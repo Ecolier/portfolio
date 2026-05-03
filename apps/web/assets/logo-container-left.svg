@@ -1,0 +1,8 @@
+<svg width="6" height="46" viewBox="0 0 6 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <clipPath id="logo-left">
+    <path d="M6 46L0 40V6C0.000115535 5.94826 0.0263886 0.000184408 6 0V46Z" />
+  </clipPath>
+</defs>
+<rect width="100%" height="100%" fill="rgba(34, 45, 61, .75)" clip-path="url(#logo-left)"/>
+</svg>

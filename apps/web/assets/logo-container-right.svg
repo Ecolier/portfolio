@@ -1,0 +1,20 @@
+<svg width="58" height="46" viewBox="0 0 58 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <clipPath id="logo-shape">
+    <path d="M12 46H9L55 0H58L12 46Z" />
+    <path d="M6 46H3L49 0H52L6 46Z" />
+    <path d="M0 46V0H46L0 46Z" />
+  </clipPath>
+  <clipPath id="nav-connector">
+    <path d="M58 46H12L58 0V46Z" />
+  </clipPath>
+  <clipPath id="full-shape">
+    <path d="M58 46H12L58 0V46Z" />
+    <path d="M12 46H9L55 0H58L12 46Z" />
+    <path d="M6 46H3L49 0H52L6 46Z" />
+    <path d="M0 46V0H46L0 46Z" />
+  </clipPath>
+</defs>
+<rect width="100%" height="100%" fill="rgba(34, 45, 61, .75)" clip-path="url(#logo-shape)"/>
+<rect width="100%" height="100%" fill="rgba(237, 241, 248, .75)" clip-path="url(#nav-connector)"/>
+</svg>

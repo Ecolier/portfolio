@@ -98,8 +98,8 @@
   --line: rgba(30, 45, 61, 0.14);
   --inset-glint: rgba(255, 255, 255, 0.82);
   --kicker: #4a5e6e;
-  --bg-base: #e8edf3;
-  --header-bg: #e8edf3;
+  --bg-base: #F5F7FB;
+  --header-bg: rgba(237, 241, 248, 0.75);
   --chip-bg: rgba(230, 237, 245, 0.55);
   --chip-line: rgba(180, 195, 220, 0.45);
   --link-bg-hover: rgba(230, 237, 245, 0.6);
