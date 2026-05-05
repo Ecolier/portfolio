@@ -256,27 +256,6 @@ function Home() {
     };
   }, [isHeroVisible]);
 
-  // ── Toggle header CTA visibility based on hero intersection ──
-  useEffect(() => {
-    const el = heroRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsHeroVisible(entry.isIntersecting);
-        document.documentElement.toggleAttribute(
-          "data-hero-visible",
-          entry.isIntersecting,
-        );
-      },
-      { threshold: 0.15 },
-    );
-    observer.observe(el);
-    return () => {
-      observer.disconnect();
-      document.documentElement.removeAttribute("data-hero-visible");
-    };
-  }, []);
-
   // ── IntersectionObserver: reveal project content ──
   useEffect(() => {
     const sections = sectionsRef.current;

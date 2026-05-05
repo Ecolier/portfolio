@@ -9,7 +9,7 @@
     "@portfolio/types": "workspace:*"
   },
   "scripts": {
-    "dev": "vite dev --port 3000",
+    "dev": "vite dev --port 3000 --host",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",

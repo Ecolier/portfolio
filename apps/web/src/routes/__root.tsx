@@ -11,7 +11,6 @@ import { detectTheme } from "@/functions/detectTheme";
 
 import appCss from "@/styles.css?url";
 import THEME_INIT_SCRIPT from "@/scripts/theme.js?raw";
-import HERO_INIT_SCRIPT from "@/scripts/hero-init.js?raw";
 
 export interface RouterContext {
   locale: Locale;
@@ -90,7 +89,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html lang={lang} className={initialTheme} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        <script dangerouslySetInnerHTML={{ __html: HERO_INIT_SCRIPT }} />
         <HeadContent />
       </head>
       <body

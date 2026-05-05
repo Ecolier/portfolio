@@ -64,6 +64,25 @@
   background: color-mix(in oklab, var(--header-bg) 84%, transparent 16%);
 }
 
+@utility menu {
+  mask: 
+    url(/menu-left.svg) left top / 6px no-repeat, 
+    linear-gradient(to right, black, black) 6px top / calc(100% - 22px) no-repeat,
+    url(/menu-right.svg) right top / 16px 56px no-repeat;
+}
+
+@utility menu-outline {
+  mask: 
+    url(/menu-left-outline.svg) left top / 6px no-repeat,
+    linear-gradient(to right, black, black) 6px top / calc(100% - 22px) 1px no-repeat,
+    linear-gradient(to right, black, black) 6px bottom / calc(100% - 22px) 1px no-repeat,
+    url(/menu-right-outline.svg) right top / 16px 56px no-repeat;;
+  position: absolute;
+  inset: 0;
+  background-color: rgba(47, 50, 55, .12);
+  backdrop-filter: blur(16px) saturate(180%);
+}
+
 @utility prose-sea {
   --tw-prose-body: var(--sea-ink-soft);
   --tw-prose-headings: var(--sea-ink);
@@ -98,8 +117,8 @@
   --line: rgba(30, 45, 61, 0.14);
   --inset-glint: rgba(255, 255, 255, 0.82);
   --kicker: #4a5e6e;
-  --bg-base: #e8edf3;
-  --header-bg: #e8edf3;
+  --bg-base: #f5f7fb;
+  --header-bg: rgba(237, 241, 248, 0.75);
   --chip-bg: rgba(230, 237, 245, 0.55);
   --chip-line: rgba(180, 195, 220, 0.45);
   --link-bg-hover: rgba(230, 237, 245, 0.6);
@@ -220,7 +239,10 @@ pre code {
 
 button,
 a {
-  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease,
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
     transform 180ms ease;
 }
 
@@ -250,6 +272,10 @@ svg * {
 ::view-transition-old(site-header),
 ::view-transition-new(site-header) {
   animation: none;
+}
+
+html {
+  font-size: 16px;
 }
 
 html[data-hero-visible] .header-cta,
