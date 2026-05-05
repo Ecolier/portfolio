@@ -67,7 +67,9 @@
 @utility menu {
   mask: 
     url(/menu-left.svg) left top / 6px no-repeat, 
-    linear-gradient(to right, black, black) 6px top / calc(100% - 22px) no-repeat,
+    linear-gradient(to right, black, black) 6px top / 50px no-repeat,
+    url(/separator.svg) 56px top / 32px no-repeat,
+    linear-gradient(to right, black, black) 88px top / calc(100% - 104px) no-repeat,
     url(/menu-right.svg) right top / 16px 56px no-repeat;
 }
 
@@ -104,6 +106,14 @@
 }
 
 :root {
+
+  --color-surface-0: hsl(218deg 44% 97%);
+  --color-surface-1: hsl(218deg 44% 95%);
+  --color-accent: hsl(214deg 11% 39%);
+
+  --color-surface-nav: var(--color-surface-1);
+  --color-surface-logo: var(--color-accent);
+
   --header-h: 3.5rem;
   --sea-ink: #1a2b40;
   --sea-ink-soft: #45607a;
@@ -112,7 +122,7 @@
   --palm: #5a7e96;
   --sand: #e8edf3;
   --foam: #f0f3f8;
-  --surface: rgba(255, 255, 255, 0.74);
+  --surface: #59626e4f;
   --surface-strong: rgba(255, 255, 255, 0.9);
   --line: rgba(30, 45, 61, 0.14);
   --inset-glint: rgba(255, 255, 255, 0.82);

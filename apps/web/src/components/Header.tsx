@@ -139,10 +139,32 @@ export default function Header({
           <div className="flex items-stretch">
             <Link
               to={localePath("/", locale)}
-              className="header-logo inline-flex shrink-0 items-center justify-center leading-none bg-[#59626E]"
+              className="header-logo inline-flex shrink-0 items-center justify-center leading-none bg-(--color-surface-logo)/75"
             >
               <LogoSvg className="w-14" />
             </Link>
+            <div className="w-8">
+              <svg
+                width="32"
+                height="56"
+                viewBox="0 0 32 56"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M0 56V0L16 56H0Z"
+                  className="fill-(--color-surface-logo)/75"
+                />
+                <path
+                  d="M28 56H25L9 0H12L28 56Z"
+                  className="fill-(--color-surface-logo)/75"
+                />
+                <path
+                  d="M22 56H19L3 0H6L22 56Z"
+                  className="fill-(--color-surface-logo)/75"
+                />
+              </svg>
+            </div>
             <nav
               aria-label="Main"
               className="flex min-w-0 items-center overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
