@@ -135,34 +135,24 @@ export default function Header({
   return (
     <header className="fixed w-full top-0 z-50 pt-[env(safe-area-inset-top)]">
       <div className="page-wrap flex items-center py-3 sm:py-4 relative">
-        <div className="menu before:menu-outline flex items-center relative backdrop-blur-md backdrop-saturate-150 bg-(--header-bg)">
+        <div className="menu before:menu-outline before:bg-accent/12 flex items-center relative backdrop-blur-md bg-surface-nav/50">
           <div className="flex items-stretch">
             <Link
               to={localePath("/", locale)}
-              className="header-logo inline-flex shrink-0 items-center justify-center leading-none bg-(--color-surface-logo)/75"
+              className="header-logo inline-flex shrink-0 items-center justify-center leading-none bg-surface-logo/50 px-4"
             >
-              <LogoSvg className="w-14" />
+              <LogoSvg />
             </Link>
-            <div className="w-8">
+            <div className="w-6.25">
               <svg
-                width="32"
+                width="25"
                 height="56"
-                viewBox="0 0 32 56"
+                viewBox="0 0 25 56"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path
-                  d="M0 56V0L16 56H0Z"
-                  className="fill-(--color-surface-logo)/75"
-                />
-                <path
-                  d="M28 56H25L9 0H12L28 56Z"
-                  className="fill-(--color-surface-logo)/75"
-                />
-                <path
-                  d="M22 56H19L3 0H6L22 56Z"
-                  className="fill-(--color-surface-logo)/75"
-                />
+                <path d="M0 56V0L16 56H0Z" className="fill-accent/50" />
+                <path d="M22 56H19L3 0H6L22 56Z" className="fill-accent/50" />
               </svg>
             </div>
             <nav
@@ -185,8 +175,8 @@ export default function Header({
                   data-active={isActive(localePath("/", locale))}
                   className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
                     isActive(localePath("/", locale))
-                      ? "text-(--sea-ink)"
-                      : "text-(--sea-ink-soft) hover:text-(--sea-ink)"
+                      ? "text-on-surface-nav-hover"
+                      : "text-on-surface-nav hover:text-(--sea-ink)"
                   }`}
                 >
                   {ui.navProjects}
@@ -202,8 +192,8 @@ export default function Header({
                   data-active={isActive(localePath("/blog", locale))}
                   className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
                     isActive(localePath("/blog", locale))
-                      ? "text-(--sea-ink)"
-                      : "text-(--sea-ink-soft) hover:text-(--sea-ink)"
+                      ? "text-on-surface-nav-hover"
+                      : "text-on-surface-nav hover:text-(--sea-ink)"
                   }`}
                 >
                   {ui.navBlog}
@@ -219,8 +209,8 @@ export default function Header({
                   data-active={isActive(localePath("/about", locale))}
                   className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
                     isActive(localePath("/about", locale))
-                      ? "text-(--sea-ink)"
-                      : "text-(--sea-ink-soft) hover:text-(--sea-ink)"
+                      ? "text-on-surface-nav-hover"
+                      : "text-on-surface-nav hover:text-(--sea-ink)"
                   }`}
                 >
                   {ui.navAbout}
