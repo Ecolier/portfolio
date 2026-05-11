@@ -76,20 +76,6 @@
   background: color-mix(in oklab, var(--header-bg) 84%, transparent 16%);
 }
 
-@utility menu {
-  mask: url(/menu-left.svg) left top / 6px no-repeat, linear-gradient(to right, black, black) 6px top / 50px no-repeat, url(/separator-mask.svg) 56px top / 22px no-repeat, linear-gradient(to right, black, black) 78px top / calc(100% - 94px) no-repeat, url(/menu-right.svg) right top / 16px 56px no-repeat;
-}
-
-@utility menu-outline {
-  mask: 
-    url(/menu-left-outline.svg) left top / 6px no-repeat,
-    linear-gradient(to right, black, black) 6px top / calc(100% - 22px) 1px no-repeat,
-    linear-gradient(to right, black, black) 6px bottom / calc(100% - 22px) 1px no-repeat,
-    url(/menu-right-outline.svg) right top / 16px 56px no-repeat;;
-  position: absolute;
-  inset: 0;
-}
-
 @utility prose-sea {
   --tw-prose-body: var(--sea-ink-soft);
   --tw-prose-headings: var(--sea-ink);
@@ -108,6 +94,44 @@
   --tw-prose-pre-bg: var(--sea-ink);
   --tw-prose-th-borders: var(--line);
   --tw-prose-td-borders: var(--line);
+}
+
+@utility shape {
+  clip-path: shape(
+    from 0% 8px,
+    line to 8px 0%,
+    hline to calc(100% - 8px),
+    curve to 100% 8px with 100% 0px,
+    vline to calc(100% - 8px),
+    line to calc(100% - 8px) 100%,
+    hline to 8px,
+    curve to 0 calc(100% - 8px) with 0 100%,
+    close);
+}
+
+@utility shape-outline {
+  position: absolute;
+  inset: 0px;
+  clip-path: shape(
+    from 0% 8px,
+    line to 8px 0%,
+    hline to calc(100% - 8px),
+    curve to 100% 8px with 100% 0px,
+    vline to calc(100% - 8px),
+    line to calc(100% - 8px) 100%,
+    hline to 8px,
+    curve to 0 calc(100% - 8px) with 0 100%,
+    line to 1px calc(100% - 8px),
+    curve to 8px calc(100% - 1px) with 1px calc(100% - 1px),
+    hline to calc(100% - 12px),
+    line to calc(100% - 1px) calc(100% - 12px),
+    vline to 8px,
+    curve to calc(100% - 8px) 1px with calc(100% - 1px) 1px,
+    hline to 8px,
+    line to 1px 8px,
+    vline to calc(100% - 8px),
+    hline to 0,
+    close);
 }
 
 :root {

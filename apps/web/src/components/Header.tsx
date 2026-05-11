@@ -135,7 +135,7 @@ export default function Header({
   return (
     <header className="fixed w-full top-0 z-50 pt-[env(safe-area-inset-top)]">
       <div className="page-wrap flex items-center py-3 sm:py-4 relative">
-        <div className="menu before:menu-outline before:bg-accent/12 flex items-center relative backdrop-blur-md bg-surface-nav/50">
+        <div className="shape before:shape-outline before:bg-accent/50 before:backdrop-blur-md flex items-center relative backdrop-blur-md bg-surface-nav/50">
           <div className="flex items-stretch">
             <Link
               to={localePath("/", locale)}
