@@ -92,7 +92,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body
-        className="font-sans antialiased wrap-anywhere selection:bg-(--selection-bg) flex flex-col min-h-dvh"
+        className="font-sans bg-body antialiased wrap-anywhere selection:bg-(--selection-bg) flex flex-col min-h-dvh"
         suppressHydrationWarning
       >
         {children}

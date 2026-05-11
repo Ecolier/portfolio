@@ -1,6 +1,4 @@
-import { useCallback, useRef, useSyncExternalStore } from "react";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
+import { useCallback, useSyncExternalStore } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { Sun, Moon } from "lucide-react";
 import type { UIStrings } from "#/types/globals";
@@ -8,6 +6,8 @@ import type { Locale } from "@/lib/locale";
 import { localePath } from "@/lib/locale";
 import { themeStore } from "#/lib/themeStore";
 import LogoSvg from "../../assets/logo.svg?react";
+import Nav from "./Nav";
+import NavLink, { type NavLinkProps } from "./Nav/Link";
 
 interface HeaderProps {
   contactEmail: string | null;
@@ -28,82 +28,17 @@ export default function Header({
     () => theme,
   );
 
+  const navLinks: NavLinkProps[] = [
+    { to: localePath("/projects", locale), label: ui.navProjects },
+    { to: localePath("/blog", locale), label: ui.navBlog },
+    { to: localePath("/about", locale), label: ui.navAbout },
+  ];
+
   const { pathname } = useLocation();
 
-  const ctaRef = useRef<HTMLAnchorElement>(null);
-  const pillRef = useRef<HTMLDivElement>(null);
-  const indicatorRef = useRef<HTMLSpanElement>(null);
-  const hasSlid = useRef(false);
-
-  const isActive = (href: string) => {
-    if (href === localePath("/", locale)) {
-      return (
-        pathname === href ||
-        pathname.startsWith(localePath("/projects", locale))
-      );
-    }
-    return pathname.startsWith(href);
+  const isActive = ({ to }: NavLinkProps) => {
+    return to !== undefined && pathname.startsWith(to);
   };
-
-  // Slide the pill indicator to the active link on every navigation.
-  useGSAP(() => {
-    const pill = pillRef.current;
-    const indicator = indicatorRef.current;
-    if (!pill || !indicator) return;
-
-    const activeLink = pill.querySelector<HTMLElement>('[data-active="true"]');
-    if (!activeLink) {
-      gsap.set(indicator, { opacity: 0 });
-      return;
-    }
-
-    const pillRect = pill.getBoundingClientRect();
-    const linkRect = activeLink.getBoundingClientRect();
-    const x = linkRect.left - pillRect.left;
-    const w = linkRect.width;
-
-    // First render or returning from a page with no active link: snap.
-    const currentOpacity = gsap.getProperty(indicator, "opacity") as number;
-    if (!hasSlid.current || currentOpacity === 0) {
-      hasSlid.current = true;
-      gsap.set(indicator, { x, width: w, opacity: 1 });
-      return;
-    }
-
-    // Rubber-band: stretch toward the target then snap to size.
-    // Moving right → right edge leads; moving left → left edge leads.
-    const prevX = gsap.getProperty(indicator, "x") as number;
-    const prevW = gsap.getProperty(indicator, "width") as number;
-    const movingRight = x > prevX;
-
-    gsap.killTweensOf(indicator);
-    const tl = gsap.timeline();
-
-    if (movingRight) {
-      // Stretch right edge to cover destination, then pull left edge in.
-      tl.to(indicator, {
-        width: x + w - prevX,
-        duration: 0.2,
-        ease: "power2.out",
-      }).to(
-        indicator,
-        { x, width: w, duration: 0.2, ease: "power2.in" },
-        ">-0.06",
-      );
-    } else {
-      // Stretch left edge to cover destination, then pull right edge in.
-      tl.to(indicator, {
-        x,
-        width: prevW + (prevX - x),
-        duration: 0.2,
-        ease: "power2.out",
-      }).to(
-        indicator,
-        { width: w, duration: 0.2, ease: "power2.in" },
-        ">-0.06",
-      );
-    }
-  }, [pathname]);
 
   const toggleTheme = useCallback(() => {
     const next = resolved === "dark" ? "light" : "dark";
@@ -133,8 +68,8 @@ export default function Header({
   }, [resolved]);
 
   return (
-    <header className="fixed w-full top-0 z-50 pt-[env(safe-area-inset-top)]">
-      <div className="page-wrap flex items-center py-3 sm:py-4 relative">
+    <header className="sticky z-50 inset-0 pt-[env(safe-area-inset-top)]">
+      <div className="page-wrap flex items-center py-2 relative">
         <div className="shape before:shape-outline before:bg-accent/24 before:backdrop-blur-md flex items-center relative backdrop-blur-md bg-surface-nav/50">
           <div className="flex items-stretch">
             <Link
@@ -155,77 +90,19 @@ export default function Header({
                 <path d="M22 56H19L3 0H6L22 56Z" className="fill-accent/50" />
               </svg>
             </div>
-            <nav
-              aria-label="Main"
-              className="flex min-w-0 items-center overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            >
-              <div
-                ref={pillRef}
-                className="relative flex shrink-0 items-center gap-0.5 px-1 py-3"
-              >
-                {/* Sliding active indicator */}
-                <span
-                  ref={indicatorRef}
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-y-1 left-0 rounded-full"
-                  style={{ width: 0, opacity: 0 }}
-                />
-                <Link
-                  to={localePath("/", locale)}
-                  data-active={isActive(localePath("/", locale))}
-                  className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
-                    isActive(localePath("/", locale))
-                      ? "text-on-surface-nav-hover"
-                      : "text-on-surface-nav hover:text-(--sea-ink)"
-                  }`}
-                >
-                  {ui.navProjects}
-                </Link>
-                <span
-                  className="relative z-10 text-(--sea-ink-soft) opacity-30"
-                  aria-hidden="true"
-                >
-                  ·
-                </span>
-                <Link
-                  to={localePath("/blog", locale)}
-                  data-active={isActive(localePath("/blog", locale))}
-                  className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
-                    isActive(localePath("/blog", locale))
-                      ? "text-on-surface-nav-hover"
-                      : "text-on-surface-nav hover:text-(--sea-ink)"
-                  }`}
-                >
-                  {ui.navBlog}
-                </Link>
-                <span
-                  className="relative z-10 text-(--sea-ink-soft) opacity-30"
-                  aria-hidden="true"
-                >
-                  ·
-                </span>
-                <Link
-                  to={localePath("/about", locale)}
-                  data-active={isActive(localePath("/about", locale))}
-                  className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium no-underline transition-colors ${
-                    isActive(localePath("/about", locale))
-                      ? "text-on-surface-nav-hover"
-                      : "text-on-surface-nav hover:text-(--sea-ink)"
-                  }`}
-                >
-                  {ui.navAbout}
-                </Link>
-              </div>
-            </nav>
+            <Nav
+              links={navLinks}
+              renderLink={(link) => (
+                <NavLink {...link} active={isActive(link)} />
+              )}
+            />
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1.5 ml-auto">
           {contactEmail && (
             <a
-              ref={ctaRef}
               href={`mailto:${contactEmail}`}
               className="header-cta hidden items-center gap-2 rounded-full border border-(--chip-line) bg-(--chip-bg) px-3 py-1.5 text-sm font-medium text-(--sea-ink) no-underline shadow-xs transition hover:bg-(--surface-strong) sm:inline-flex"
-              onMouseEnter={() => logoRef.current?.bounce()}
             >
               {ui.ctaContact}
             </a>

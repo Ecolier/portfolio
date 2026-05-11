@@ -10,7 +10,7 @@ type Palette = {
 
 const PALETTES: Record<"light" | "dark", Palette> = {
   light: {
-    bg: [0.961, 0.969, 0.984],
+    bg: [1.0, 1.0, 1.0],
     line: [0.102, 0.169, 0.251],
     particle: [0.58, 0.68, 0.78],
     visibilityBoost: 1,

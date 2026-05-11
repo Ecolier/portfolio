@@ -4,11 +4,13 @@
 @theme {
   --color-*: initial;
 
+  --color-body: white;
+
   --color-surface-0: oklch(97% 0.1 210deg);
-  --color-surface-1: oklch(from var(--color-surface-0) 85% 0.05 h);
-  --color-on-surface-0: oklch(from var(--color-surface-0) 33% c h);
-  --color-on-surface-0-accent: oklch(from var(--color-surface-0) 11% c h);
-  --color-accent: oklch(20% 0.25 210deg);
+  --color-surface-1: oklch(from var(--color-surface-0) 97% 0.05 h);
+  --color-on-surface-0: oklch(from var(--color-surface-0) 1% c h);
+  --color-on-surface-0-accent: oklch(from var(--color-surface-0) 0.1% 0.1 h);
+  --color-accent: oklch(from var(--color-surface-0) .1% c h);
   --color-surface-nav: var(--color-surface-1);
   --color-surface-logo: var(--color-accent);
   --color-on-surface-nav: var(--color-on-surface-0);
@@ -235,7 +237,6 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   color: var(--sea-ink);
   font-family: var(--font-sans);
-  background-color: var(--bg-base);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
