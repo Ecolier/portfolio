@@ -4,17 +4,19 @@
 @theme {
   --color-*: initial;
 
-  --color-body: white;
 
-  --color-surface-0: oklch(97% 0.1 210deg);
-  --color-surface-1: oklch(from var(--color-surface-0) 97% 0.05 h);
-  --color-on-surface-0: oklch(from var(--color-surface-0) 1% c h);
-  --color-on-surface-0-accent: oklch(from var(--color-surface-0) 0.1% 0.1 h);
-  --color-accent: oklch(from var(--color-surface-0) .1% c h);
-  --color-surface-nav: var(--color-surface-1);
-  --color-surface-logo: var(--color-accent);
-  --color-on-surface-nav: var(--color-on-surface-0);
-  --color-on-surface-nav-hover: var(--color-on-surface-0-accent);
+  --color-surface-0: white;
+  --color-surface-1: oklch(100% .1 275deg);
+  --color-on-surface-1: oklch(from var(--color-surface-1) 50% 0.05 h);
+  --color-on-surface-1-strong: oklch(from var(--color-on-surface-1) 25% c h);
+
+  --color-body: var(--color-surface-0);
+
+  --color-nav: var(--color-surface-1);
+  --color-nav-outline: var(--color-on-surface-1);
+  --color-nav-decoration: var(--color-on-surface-1);
+  --color-nav-link: var(--color-on-surface-1);
+  --color-nav-link-active: var(--color-on-surface-1-strong);
 
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Fraunces", Georgia, serif;
@@ -108,6 +110,20 @@
     line to calc(100% - 8px) 100%,
     hline to 8px,
     curve to 0 calc(100% - 8px) with 0 100%,
+    close);
+}
+
+@utility shape-decoration {
+  position: absolute;
+  inset: 0px;
+  clip-path: shape(
+    from 0 0, 
+    line to 0px 100%,
+    hline to 12px, 
+    move to 1px 0,
+    line to 13px 100%,
+    hline to 14px,
+    line to 2px 0,
     close);
 }
 

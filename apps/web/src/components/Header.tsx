@@ -70,26 +70,8 @@ export default function Header({
   return (
     <header className="sticky z-50 inset-0 pt-[env(safe-area-inset-top)]">
       <div className="page-wrap flex items-center py-2 relative">
-        <div className="shape before:shape-outline before:bg-accent/24 before:backdrop-blur-md flex items-center relative backdrop-blur-md bg-surface-nav/50">
+        <div className="shape before:after:backdrop-saturate-50 before:after:backdrop-blur-xl before:shape-outline before:bg-nav-outline/50 after:shape-decoration after:bg-nav-decoration/75 flex items-center relative backdrop-blur-xl bg-nav/75 backdrop-saturate-50">
           <div className="flex items-stretch">
-            <Link
-              to={localePath("/", locale)}
-              className="header-logo inline-flex shrink-0 items-center justify-center leading-none bg-surface-logo/50 px-4"
-            >
-              <LogoSvg />
-            </Link>
-            <div className="w-6.25">
-              <svg
-                width="25"
-                height="56"
-                viewBox="0 0 25 56"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M0 56V0L16 56H0Z" className="fill-accent/50" />
-                <path d="M22 56H19L3 0H6L22 56Z" className="fill-accent/50" />
-              </svg>
-            </div>
             <Nav
               links={navLinks}
               renderLink={(link) => (
