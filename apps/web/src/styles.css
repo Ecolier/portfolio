@@ -145,8 +145,8 @@
     line to calc(100% - 1px) calc(100% - 12px),
     vline to 8px,
     curve to calc(100% - 8px) 1px with calc(100% - 1px) 1px,
-    hline to 8px,
-    line to 1px 8px,
+    hline to 8.5px,
+    line to 1px 8.5px,
     vline to calc(100% - 8px),
     hline to 0,
     close);
