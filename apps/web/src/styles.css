@@ -1,26 +1,122 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
 @theme {
   --color-*: initial;
 
+  --color-neutral-0: white;
+  --color-neutral-50: oklch(0.98 0.01 275);
+  --color-neutral-100: oklch(0.875 0.035 280);
+  --color-neutral-200: oklch(0.745 0.025 275);
+  --color-neutral-300: oklch(0.625 0.02 275);
+  --color-neutral-400: oklch(0.525 0.01 275);
+  --color-neutral-500: oklch(.475 .075 275);
+  --color-neutral-600: oklch(0.375 0.05 275);
+  --color-neutral-700: oklch(0.325 0.035 275);
+  --color-neutral-800: oklch(0.275 0.035 275);
+  --color-neutral-900: oklch(0.22 0.01 275);
+  --color-neutral-950: oklch(0.15 0.01 275);
+  
+  --color-surface-1-light: oklch(100% .1 275deg);
+  --color-surface-1-dark: oklch(15% .2 275deg);
+  --color-on-surface-1-light: oklch(from var(--color-surface-1) 50% 0.05 h);
+  --color-on-surface-1-dark: oklch(from var(--color-surface-1) 50% 0.05 h);
+  --color-on-surface-1-strong-light: oklch(from var(--color-on-surface-1) 25% c h);
+  --color-on-surface-1-strong-dark: oklch(from var(--color-on-surface-1) 60% c h);
 
-  --color-surface-0: white;
-  --color-surface-1: oklch(100% .1 275deg);
-  --color-on-surface-1: oklch(from var(--color-surface-1) 50% 0.05 h);
-  --color-on-surface-1-strong: oklch(from var(--color-on-surface-1) 25% c h);
-
-  --color-body: var(--color-surface-0);
-
-  --color-nav: var(--color-surface-1);
-  --color-nav-outline: var(--color-on-surface-1);
-  --color-nav-decoration: var(--color-on-surface-1);
-  --color-nav-link: var(--color-on-surface-1);
-  --color-nav-link-active: var(--color-on-surface-1-strong);
-
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Fraunces", Georgia, serif;
   --animate-rise-in: rise-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@utility nav-shape {
+  clip-path: shape(
+    from 0% 8px,
+    line to 8px 0%,
+    hline to calc(100% - 8px),
+    curve to 100% 8px with 100% 0px,
+    vline to calc(100% - 8px),
+    line to calc(100% - 8px) 100%,
+    hline to 8px,
+    curve to 0 calc(100% - 8px) with 0 100%,
+    close);
+}
+
+@utility nav-decoration {
+  position: absolute;
+  inset: 0px;
+  clip-path: shape(
+    from 0 0, 
+    line to 0px 100%,
+    hline to 12px, 
+    move to 1px 0,
+    line to 13px 100%,
+    hline to 14px,
+    line to 2px 0,
+    close);
+}
+
+@utility nav-outline {
+  position: absolute;
+  inset: 0px;
+  clip-path: shape(
+    from 0 8px,
+    line to 8px 0,
+    hline to calc(100% - 8px),
+    curve to 100% 8px with 100% 0,
+    vline to calc(100% - 8px),
+    line to calc(100% - 8px) 100%,
+    hline to 8px,
+    curve to 0 calc(100% - 8px) with 0 100%,
+    line to 1px calc(100% - 8px),
+    curve to 8px calc(100% - 1px) with 1px calc(100% - 1px),
+    hline to calc(100% - 12px),
+    line to calc(100% - 1px) calc(100% - 12px),
+    vline to 8px,
+    curve to calc(100% - 8px) 1px with calc(100% - 1px) 1px,
+    hline to 8.5px,
+    line to 1px 8.5px,
+    vline to calc(100% - 8px),
+    hline to 0,
+
+    /* bottom left corner decoration */
+    move to 0 6px, 
+    line to 13px 100%,
+    hline to 0,
+
+    /* ornemental line */
+    move to 3px 0,
+    line to 15px 100%,
+    hline to 14px,
+    line to 1px 0,
+
+    close);
+}
+
+@utility nav-edge {
+  position: absolute;
+  inset: 0px;
+  clip-path: shape(
+    from 0 0,
+    hline to 100%,
+    vline to 100%,
+    line to 100% 100%,
+    hline to 0,
+    line to 0 calc(100% - 8px),
+    hline to 0.5px,
+    curve to 7.5px calc(100% - 0.5px) with 0.5px calc(100% - 0.5px),
+    hline to calc(100% - 8.5px),
+    line to calc(100% - 0.5px) calc(100% - 8.5px),
+    vline to 8.5px,
+    curve to calc(100% - 7.5px) 0.5px with calc(100% - 0.1px) 1px,
+    hline to 8.5px,
+    line to 0.5px 8.5px,
+    vline to calc(100% - 8px),
+    hline to 0px,
+    close
+  );
 }
 
 @keyframes rise-in {
@@ -98,58 +194,6 @@
   --tw-prose-pre-bg: var(--sea-ink);
   --tw-prose-th-borders: var(--line);
   --tw-prose-td-borders: var(--line);
-}
-
-@utility shape {
-  clip-path: shape(
-    from 0% 8px,
-    line to 8px 0%,
-    hline to calc(100% - 8px),
-    curve to 100% 8px with 100% 0px,
-    vline to calc(100% - 8px),
-    line to calc(100% - 8px) 100%,
-    hline to 8px,
-    curve to 0 calc(100% - 8px) with 0 100%,
-    close);
-}
-
-@utility shape-decoration {
-  position: absolute;
-  inset: 0px;
-  clip-path: shape(
-    from 0 0, 
-    line to 0px 100%,
-    hline to 12px, 
-    move to 1px 0,
-    line to 13px 100%,
-    hline to 14px,
-    line to 2px 0,
-    close);
-}
-
-@utility shape-outline {
-  position: absolute;
-  inset: 0px;
-  clip-path: shape(
-    from 0% 8px,
-    line to 8px 0%,
-    hline to calc(100% - 8px),
-    curve to 100% 8px with 100% 0px,
-    vline to calc(100% - 8px),
-    line to calc(100% - 8px) 100%,
-    hline to 8px,
-    curve to 0 calc(100% - 8px) with 0 100%,
-    line to 1px calc(100% - 8px),
-    curve to 8px calc(100% - 1px) with 1px calc(100% - 1px),
-    hline to calc(100% - 12px),
-    line to calc(100% - 1px) calc(100% - 12px),
-    vline to 8px,
-    curve to calc(100% - 8px) 1px with calc(100% - 1px) 1px,
-    hline to 8.5px,
-    line to 1px 8.5px,
-    vline to calc(100% - 8px),
-    hline to 0,
-    close);
 }
 
 :root {

@@ -13,10 +13,10 @@ export default function NavLink({ to, href, active, label }: NavLinkProps) {
   return to ? (
     <Link
       to={to}
-      className={`relative z-10 rounded-full px-4 py-3 text-sm font-medium no-underline transition-colors ${
+      className={`relative z-10 rounded-full px-4 py-3 text-sm font-medium no-underline ${
         active
-          ? "text-nav-link-active"
-          : "text-nav-link hover:text-nav-link-active"
+          ? "text-neutral-400 dark:text-neutral-50"
+          : "text-neutral-400 dark:text-neutral-200"
       }`}
     >
       {label}

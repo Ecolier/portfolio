@@ -1,12 +1,16 @@
-export const themeStore = {
+const themeStore = {
   subscribe: (callback: () => void) => {
     const observer = new MutationObserver(callback);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["class"],
+      attributeFilter: ["data-theme"],
     });
     return () => observer.disconnect();
   },
   getSnapshot: () =>
-    document.documentElement.classList.contains("dark") ? "dark" : "light",
+    document.documentElement.getAttribute("data-theme") === "dark"
+      ? "dark"
+      : "light",
 };
+
+export default themeStore;

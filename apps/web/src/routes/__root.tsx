@@ -10,7 +10,7 @@ import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type Locale } from "@/lib/locale";
 import { detectTheme } from "@/functions/detectTheme";
 
 import appCss from "@/styles.css?url";
-import THEME_INIT_SCRIPT from "@/scripts/theme.js?raw";
+import ThemeProvider from "#/components/ThemeProvider";
 
 export interface RouterContext {
   locale: Locale;
@@ -48,7 +48,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=optional",
+        href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Outfit:wght@400;500;600;700;800&display=optional",
       },
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", sizes: "32x32" },
@@ -79,23 +79,23 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const { initialTheme } = Route.useRouteContext();
   const segment = pathname.split("/")[1];
   const lang: Locale = (SUPPORTED_LOCALES as string[]).includes(segment)
     ? (segment as Locale)
     : DEFAULT_LOCALE;
 
   return (
-    <html lang={lang} className={initialTheme} suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
       <body
-        className="font-sans bg-body antialiased wrap-anywhere selection:bg-(--selection-bg) flex flex-col min-h-dvh"
+        className="flex flex-col min-h-dvh
+        bg-neutral-0 dark:bg-neutral-900
+        font-sans"
         suppressHydrationWarning
       >
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
         <Suspense fallback={null}>
           <TanStackRouterDevtools position="bottom-right" />
         </Suspense>
