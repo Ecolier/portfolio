@@ -26,13 +26,18 @@ export default function ThemeSwitch({ initialTheme }: ThemeSwitchProps) {
     <button
       type="button"
       onClick={toggleTheme}
-      className="rounded-full p-2 text-(--sea-ink-soft) transition hover:bg-(--surface) hover:text-(--sea-ink)"
+      className="rounded-full bg-linear-to-tl to-accent-50/75 from-accent-100/90 p-2 text-neutral-50 hover:to-accent-100/75 hover:from-accent-300/90 backdrop-blur-md"
       aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
     >
       {resolvedTheme === "dark" ? (
-        <Sun size={18} aria-hidden="true" />
+        <Sun fill="currentColor" size={18} aria-hidden="true" />
       ) : (
-        <Moon size={18} aria-hidden="true" />
+        <Moon
+          fill="currentColor"
+          strokeWidth={0}
+          size={18}
+          aria-hidden="true"
+        />
       )}
     </button>
   );

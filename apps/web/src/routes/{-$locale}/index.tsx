@@ -1,14 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
+import { useEffect, useRef } from "react";
 import { getProjects } from "@/functions/getProjects";
 import { getHomePage, getSiteSettings } from "@/functions/getGlobals";
 import type { Locale } from "@/lib/locale";
@@ -20,34 +11,6 @@ import {
   ogLocaleAlternates,
 } from "@/lib/locale";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
-import { windState } from "@/lib/canvasState";
-import HeroDuck from "#/components/HeroDuck";
-
-const HeroCanvas = lazy(() => import("@/components/HeroCanvas"));
-
-function shouldEnableWindTunnel(): boolean {
-  if (typeof window === "undefined") return false;
-
-  const ua = navigator.userAgent.toLowerCase();
-  const isBot = /(bot|crawl|spider|slurp|googlebot|bingbot|yandex)/i.test(ua);
-  if (isBot) return false;
-
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    return false;
-  }
-
-  const connection = (
-    navigator as Navigator & {
-      connection?: { saveData?: boolean };
-    }
-  ).connection;
-  if (connection?.saveData) return false;
-
-  const canvas = document.createElement("canvas");
-  return !!(
-    canvas.getContext("webgl") || canvas.getContext("experimental-webgl")
-  );
-}
 
 export const Route = createFileRoute("/{-$locale}/")({
   component: Home,
@@ -102,161 +65,12 @@ export const Route = createFileRoute("/{-$locale}/")({
 });
 
 function Home() {
-  const loaderData = Route.useLoaderData() as {
-    projects: Array<{
-      id: string;
-      slug: string;
-      name: string;
-      company?: string | null;
-      excerpt?: string | null;
-      description?: string | null;
-      keywords: string[];
-      coverImage?: {
-        url: string;
-        width?: number | null;
-        height?: number | null;
-      } | null;
-      repository?: string | null;
-      website?: string | null;
-    }>;
-    homePage: {
-      headline: string;
-      subtitle?: string | null;
-      metaTitle?: string | null;
-      metaDescription?: string | null;
-    };
-    siteSettings: {
-      ui: {
-        ctaContact: string;
-        navProjects: string;
-        ctaViewProjects: string;
-      };
-      contactEmail?: string | null;
-      siteTitle?: string | null;
-      siteDescription?: string | null;
-    };
-  };
+  const loaderData = Route.useLoaderData();
   const { projects, homePage, siteSettings } = loaderData;
   const { locale } = Route.useRouteContext();
   const navigate = useNavigate();
   const sectionsRef = useRef<HTMLElement[]>([]);
-  const canopyRef = useRef<HTMLDivElement>(null);
-  const heroRef = useRef<HTMLElement>(null);
-  const heroContentRef = useRef<HTMLDivElement>(null);
-  const canvasWrapRef = useRef<HTMLDivElement>(null);
-  const [isHeroVisible, setIsHeroVisible] = useState(true);
-  const [showCanvas, setShowCanvas] = useState(false);
-  const [heroReady, setHeroReady] = useState(false);
-  const markHeroReady = useCallback(() => setHeroReady(true), []);
 
-  useEffect(() => {
-    if (!shouldEnableWindTunnel()) return;
-
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    let idleId: number | null = null;
-
-    const show = () => {
-      timeoutId = setTimeout(() => setShowCanvas(true), 200);
-    };
-
-    if ("requestIdleCallback" in window) {
-      idleId = window.requestIdleCallback(show, { timeout: 800 });
-    } else {
-      show();
-    }
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (idleId !== null && "cancelIdleCallback" in window) {
-        window.cancelIdleCallback(idleId);
-      }
-    };
-  }, []);
-
-  // If the canvas is disabled (bots, reduced motion, old hardware),
-  // mark the hero ready immediately so content still fades in.
-  useEffect(() => {
-    if (shouldEnableWindTunnel()) return;
-    const raf = requestAnimationFrame(() => setHeroReady(true));
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  // Reveal all hero content together once the canvas has its first frame.
-  useGSAP(
-    () => {
-      if (!heroReady) return;
-      gsap.to(
-        [heroContentRef.current, canvasWrapRef.current, cueRef.current].filter(
-          Boolean,
-        ),
-        { opacity: 1, duration: 0.55, ease: "power2.out" },
-      );
-    },
-    { dependencies: [heroReady] },
-  );
-
-  // ── Measure umbrella canopy relative to hero section ──
-  useEffect(() => {
-    let raf = 0;
-    let intervalId: ReturnType<typeof setInterval> | null = null;
-
-    function measure() {
-      const el = canopyRef.current;
-      const hero = heroRef.current;
-      if (!el || !hero) {
-        windState.obstacles = [];
-        return;
-      }
-
-      const cr = el.getBoundingClientRect();
-      const hr = hero.getBoundingClientRect();
-      windState.obstacles = [
-        {
-          x: (cr.left + cr.width / 2 - hr.left) / hr.width,
-          y: 1 - (cr.top + cr.height / 2 - hr.top) / hr.height,
-          w: cr.width / 2 / hr.width,
-          h: cr.height / 2 / hr.height,
-        },
-      ];
-    }
-
-    function scheduleMeasure() {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(measure);
-    }
-
-    function syncSampling() {
-      if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-
-      if (document.visibilityState === "visible" && isHeroVisible) {
-        intervalId = setInterval(scheduleMeasure, 120);
-      }
-    }
-
-    const resizeObserver = new ResizeObserver(scheduleMeasure);
-    if (heroRef.current) resizeObserver.observe(heroRef.current);
-    if (canopyRef.current) resizeObserver.observe(canopyRef.current);
-
-    window.addEventListener("resize", scheduleMeasure, { passive: true });
-    document.addEventListener("visibilitychange", syncSampling);
-
-    scheduleMeasure();
-    syncSampling();
-
-    return () => {
-      cancelAnimationFrame(raf);
-      if (intervalId) clearInterval(intervalId);
-      resizeObserver.disconnect();
-      window.removeEventListener("resize", scheduleMeasure);
-      document.removeEventListener("visibilitychange", syncSampling);
-      windState.obstacles = [];
-    };
-  }, [isHeroVisible]);
-
-  // ── IntersectionObserver: reveal project content ──
   useEffect(() => {
     const sections = sectionsRef.current;
     if (!sections.length) return;
@@ -281,7 +95,6 @@ function Home() {
     };
   }, [projects]);
 
-  // ── Scroll cue: fade on scroll ──
   const cueRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     function onScroll() {
@@ -299,74 +112,6 @@ function Home() {
 
   return (
     <main className="flex-1">
-      {/* ── Hero ── */}
-      <section
-        ref={heroRef}
-        className="relative grid snap-start grid-rows-[minmax(0,1fr)_auto] items-center justify-items-center px-4"
-        style={{
-          height: "calc(100svh - var(--header-h))",
-          // DIAGNOSTIC: paint the theme bg directly on the hero section.
-          // If the flash still happens, the issue is above this element
-          // (paint holding / pre-CSS default / color-scheme race).
-          background: "var(--bg-base)",
-        }}
-      >
-        {showCanvas && (
-          <div
-            ref={canvasWrapRef}
-            className="pointer-events-none absolute inset-0 z-0"
-            style={{ opacity: 0 }}
-          >
-            <Suspense>
-              <HeroCanvas active={isHeroVisible} onReady={markHeroReady} />
-            </Suspense>
-          </div>
-        )}
-        <div
-          ref={heroContentRef}
-          className="relative z-10 flex min-h-0 flex-col items-center"
-          style={{ opacity: 0 }}
-        >
-          <HeroDuck canopyRef={canopyRef}>
-            <h1 className="font-display whitespace-pre-wrap text-center text-4xl font-bold text-(--sea-ink) drop-shadow-[0_2px_12px_rgba(0,0,0,0.06)] sm:text-6xl md:text-7xl">
-              {homePage.headline}
-            </h1>
-            {homePage.subtitle && (
-              <p className="mt-3 whitespace-pre-wrap text-center text-base text-(--sea-ink-soft) sm:text-lg">
-                {homePage.subtitle}
-              </p>
-            )}
-            {siteSettings.contactEmail && (
-              <a
-                href={`mailto:${siteSettings.contactEmail}`}
-                className="mt-6 inline-block rounded-full border border-(--line) bg-(--surface) px-6 py-2.5 text-sm font-semibold text-(--sea-ink) no-underline shadow-sm backdrop-blur-sm transition hover:bg-(--surface-strong) sm:text-base"
-              >
-                {siteSettings.ui.ctaContact}
-              </a>
-            )}
-          </HeroDuck>
-        </div>
-
-        {/* Scroll cue */}
-        <button
-          type="button"
-          ref={cueRef}
-          className="relative z-10 mb-8 flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-(--sea-ink-soft) transition-opacity duration-500"
-          style={{ opacity: 0 }}
-          onClick={() =>
-            document
-              .getElementById("projects")
-              ?.scrollIntoView({ behavior: "smooth" })
-          }
-        >
-          <span className="text-xs uppercase tracking-widest">
-            {siteSettings.ui.navProjects}
-          </span>
-          <ArrowDown size={20} className="animate-bounce" aria-hidden="true" />
-        </button>
-      </section>
-
-      {/* ── Projects: full viewport sections ── */}
       {projects.map((project, i) => (
         <section
           key={project.id}
@@ -469,7 +214,6 @@ function Home() {
             </div>
           </div>
 
-          {/* Navigation indicator */}
           <div className="absolute inset-x-0 bottom-6 z-10 flex flex-col items-center gap-1">
             <span className="text-xs tabular-nums text-(--sea-ink-soft)">
               {i + 1} / {projects.length}
