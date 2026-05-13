@@ -6,8 +6,10 @@
 @theme {
   --color-*: initial;
 
-  --color-neutral-0: white;
-  --color-neutral-50: oklch(0.98 0.01 275);
+  --color-white: white;
+  --color-black: black;
+
+  --color-neutral-50: oklch(0.99 0.01 275);
   --color-neutral-100: oklch(0.875 0.035 280);
   --color-neutral-200: oklch(0.745 0.025 275);
   --color-neutral-300: oklch(0.625 0.02 275);
@@ -16,8 +18,14 @@
   --color-neutral-600: oklch(0.375 0.05 275);
   --color-neutral-700: oklch(0.325 0.035 275);
   --color-neutral-800: oklch(0.275 0.035 275);
-  --color-neutral-900: oklch(0.22 0.01 275);
-  --color-neutral-950: oklch(0.15 0.01 275);
+  --color-neutral-900: oklch(0.24 0.02 275);
+  --color-neutral-950: oklch(0.18 0.01 275);
+
+  --color-accent-50: oklch(0.875 0.075 275);
+  --color-accent-100: oklch(0.75 0.1 275);
+  --color-accent-200: oklch(0.675 0.15 275);
+  --color-accent-300: oklch(0.6 0.15 275);
+  --color-accent-500: oklch(0.45 0.25 275);
   
   --color-surface-1-light: oklch(100% .1 275deg);
   --color-surface-1-dark: oklch(15% .2 275deg);
@@ -45,22 +53,20 @@
 }
 
 @utility nav-decoration {
-  position: absolute;
-  inset: 0px;
   clip-path: shape(
-    from 0 0, 
-    line to 0px 100%,
-    hline to 12px, 
-    move to 1px 0,
+    from 0 6px, 
     line to 13px 100%,
+    hline to 0,
+
+    /* ornemental line */
+    move to 3px 0,
+    line to 15px 100%,
     hline to 14px,
-    line to 2px 0,
+    line to 1px 0,
     close);
 }
 
-@utility nav-outline {
-  position: absolute;
-  inset: 0px;
+@utility nav-highlight {
   clip-path: shape(
     from 0 8px,
     line to 8px 0,
@@ -80,24 +86,10 @@
     line to 1px 8.5px,
     vline to calc(100% - 8px),
     hline to 0,
-
-    /* bottom left corner decoration */
-    move to 0 6px, 
-    line to 13px 100%,
-    hline to 0,
-
-    /* ornemental line */
-    move to 3px 0,
-    line to 15px 100%,
-    hline to 14px,
-    line to 1px 0,
-
     close);
 }
 
-@utility nav-edge {
-  position: absolute;
-  inset: 0px;
+@utility nav-shadow {
   clip-path: shape(
     from 0 0,
     hline to 100%,

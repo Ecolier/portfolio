@@ -91,7 +91,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body
         className="flex flex-col min-h-dvh
-        bg-neutral-0 dark:bg-neutral-900
+        bg-neutral-50 dark:bg-neutral-900
         font-sans"
         suppressHydrationWarning
       >
