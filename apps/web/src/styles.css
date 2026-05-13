@@ -54,16 +54,16 @@
 
 @utility nav-decoration {
   clip-path: shape(
-    from 0 6px, 
-    line to 13px 100%,
-    hline to 0,
-
-    /* ornemental line */
-    move to 3px 0,
-    line to 15px 100%,
-    hline to 14px,
-    line to 1px 0,
-    close);
+    from 2px 9px,
+    line to 15px calc(100% - 2px),
+    hline to 8px,
+    curve to 2px calc(100% - 8px) with 2px calc(100% - 2px),
+    move to 5px 6px,
+    line to 17px calc(100% - 2px),
+    hline to 18px,
+    line to 10px 2px,
+    hline to 9px,
+    close)
 }
 
 @utility nav-highlight {
