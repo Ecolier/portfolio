@@ -1,12 +1,14 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import NavLink, { type NavLinkProps } from "./Link";
+import NavAccessory from "./Accessory";
 
 export interface NavProps {
   links: NavLinkProps[];
-  renderLink?: (link: NavLinkProps) => React.ReactNode;
+  renderLink?: (link: NavLinkProps) => ReactNode;
+  renderAccessory?: () => ReactNode;
 }
 
-export default function Nav({ links, renderLink }: NavProps) {
+export default function Nav({ links, renderLink, renderAccessory }: NavProps) {
   return (
     <>
       <div
@@ -35,7 +37,7 @@ export default function Nav({ links, renderLink }: NavProps) {
             aria-label="Main"
           >
             {links.map((link, index) => (
-              <Fragment key={link.to || link.href}>
+              <Fragment key={link.to}>
                 {renderLink ? renderLink(link) : <NavLink {...link} />}
                 {index < links.length - 1 && (
                   <span
@@ -50,6 +52,7 @@ export default function Nav({ links, renderLink }: NavProps) {
           </nav>
         </div>
       </div>
+      {renderAccessory && <NavAccessory>{renderAccessory()}</NavAccessory>}
     </>
   );
 }

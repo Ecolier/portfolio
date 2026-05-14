@@ -26,6 +26,9 @@
   --color-accent-200: oklch(0.675 0.15 275);
   --color-accent-300: oklch(0.6 0.15 275);
   --color-accent-500: oklch(0.45 0.25 275);
+  --color-accent-700: oklch(0.3 0.25 275);
+  --color-accent-900: oklch(0.15 0.25 275);
+  --color-accent-950: oklch(0.1 0.25 275);
   
   --color-surface-1-light: oklch(100% .1 275deg);
   --color-surface-1-dark: oklch(15% .2 275deg);
@@ -39,14 +42,24 @@
   --animate-rise-in: rise-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+@utility nav-accessory-shape {
+  clip-path: shape(from 0 0, hline to calc(100% - 8px), curve to 100% 8px with 100% 0px, vline to calc(100% - 12px), line to calc(100% - 12px) 100%, hline to 0, close);
+}
+
+@utility nav-accessory-highlight {
+  clip-path: shape(from 0 0, hline to 100%, vline to 100%, hline to 0, vline to calc(100% - 1px), hline to calc(100% - 13px), line to calc(100% - 1px) calc(100% - 13px), vline to 8px, curve to calc(100% - 8px) 1px with calc(100% - 1px) 1px, hline to 0, close);
+}
+
+@utility nav-accessory-shadow {
+  clip-path: shape( from 0 0, hline to 100%, vline to 100%, hline to 0px, vline to calc(100% - 0.5px), hline to 0.5px, vline to calc(100% - 0.5px), hline to calc(100% - 12.25px), line to calc(100% - 0.5px) calc(100% - 12.25px), vline to 8.5px, curve to calc(100% - 7.5px) 0.5px with calc(100% - 0.1px) 1px, hline to 0, close)
+}
+
 @utility nav-shape {
   clip-path: shape(
     from 0% 8px,
     line to 8px 0%,
-    hline to calc(100% - 8px),
-    curve to 100% 8px with 100% 0px,
-    vline to calc(100% - 8px),
-    line to calc(100% - 8px) 100%,
+    hline to 100%,
+    vline to 100%,
     hline to 8px,
     curve to 0 calc(100% - 8px) with 0 100%,
     close);
@@ -63,52 +76,15 @@
     hline to 18px,
     line to 10px 2px,
     hline to 9px,
-    close)
-}
-
-@utility nav-highlight {
-  clip-path: shape(
-    from 0 8px,
-    line to 8px 0,
-    hline to calc(100% - 8px),
-    curve to 100% 8px with 100% 0,
-    vline to calc(100% - 8px),
-    line to calc(100% - 8px) 100%,
-    hline to 8px,
-    curve to 0 calc(100% - 8px) with 0 100%,
-    line to 1px calc(100% - 8px),
-    curve to 8px calc(100% - 1px) with 1px calc(100% - 1px),
-    hline to calc(100% - 12px),
-    line to calc(100% - 1px) calc(100% - 12px),
-    vline to 8px,
-    curve to calc(100% - 8px) 1px with calc(100% - 1px) 1px,
-    hline to 8.5px,
-    line to 1px 8.5px,
-    vline to calc(100% - 8px),
-    hline to 0,
     close);
 }
 
+@utility nav-highlight {
+clip-path: shape(from 0 0, hline to 100%, vline to 100%, hline to 8px, curve to 0 calc(100% - 8px) with 0px 100%, line to 1px calc(100% - 8px), curve to 8px calc(100% - 1px) with 1px calc(100% - 1px), hline to calc(100% + 1px), vline to 1px, hline to 8.5px, line to 1px 8.5px, vline to calc(100% - 8px), hline to 0, close)
+}
+
 @utility nav-shadow {
-  clip-path: shape(
-    from 0 0,
-    hline to 100%,
-    vline to 100%,
-    line to 100% 100%,
-    hline to 0,
-    line to 0 calc(100% - 8px),
-    hline to 0.5px,
-    curve to 7.5px calc(100% - 0.5px) with 0.5px calc(100% - 0.5px),
-    hline to calc(100% - 8.5px),
-    line to calc(100% - 0.5px) calc(100% - 8.5px),
-    vline to 8.5px,
-    curve to calc(100% - 7.5px) 0.5px with calc(100% - 0.1px) 1px,
-    hline to 8.5px,
-    line to 0.5px 8.5px,
-    vline to calc(100% - 8px),
-    hline to 0px,
-    close
-  );
+clip-path: shape(from 0 0, hline to 100%, vline to 100%, hline to 0, line to 0 calc(100% - 8px), hline to 0.5px, curve to 7.5px calc(100% - 0.5px) with 0.5px calc(100% - 0.5px), hline to calc(100% + 0.5px), vline to 0.5px, hline to 8.5px, line to 0.5px 8.5px, vline to calc(100% - 8px), hline to 0px, close);
 }
 
 @keyframes rise-in {

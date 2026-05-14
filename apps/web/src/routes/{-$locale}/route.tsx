@@ -5,7 +5,7 @@ import {
   useLocation,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
-import Header from "@/components/Header";
+import Header from "#/components/Header";
 import { getSiteSettings } from "@/functions/getGlobals";
 import type { Locale } from "@/lib/locale";
 import { detectPreferredLocale } from "@/functions/detectLocale";
@@ -13,8 +13,10 @@ import {
   SUPPORTED_LOCALES,
   DEFAULT_LOCALE,
   stripLocalePrefix,
+  localePath,
 } from "@/lib/locale";
 import { useLangSwitch } from "@/hooks/useLangSwitch";
+import type { NavLinkProps } from "#/components/Nav/Link";
 
 export const Route = createFileRoute("/{-$locale}")({
   beforeLoad: async ({ params, location }) => {
@@ -69,9 +71,23 @@ function LocaleLayout() {
 
   const { switchHref, handleLangSwitch } = useLangSwitch(locale, pathname);
 
+  const navLinks: NavLinkProps[] = [
+    { to: localePath("/", locale), label: siteSettings.ui.navAbout },
+    { to: localePath("/projects", locale), label: siteSettings.ui.navProjects },
+  ];
+
   return (
     <>
       <Header
+        navLinks={navLinks}
+        renderAccessory={() => (
+          <a
+            href={`mailto:${siteSettings.contactEmail}`}
+            className="rounded-xl px-2 py-1.5 text-xs font-semibold uppercase no-underline transition hover:text-(--sea-ink)"
+          >
+            {siteSettings.ui.ctaContact}
+          </a>
+        )}
         contactEmail={siteSettings.contactEmail}
         ui={siteSettings.ui}
         locale={locale}

@@ -14,9 +14,7 @@ import { Route as Char123LocaleChar125RouteRouteImport } from './routes/{-$local
 import { Route as Char123LocaleChar125IndexRouteImport } from './routes/{-$locale}/index'
 import { Route as Char123LocaleChar125AboutRouteImport } from './routes/{-$locale}/about'
 import { Route as ApiRevalidateRouteImport } from './routes/api/revalidate'
-import { Route as Char123LocaleChar125BlogIndexRouteImport } from './routes/{-$locale}/blog/index'
 import { Route as Char123LocaleChar125ProjectsSlugRouteImport } from './routes/{-$locale}/projects/$slug'
-import { Route as Char123LocaleChar125BlogSlugRouteImport } from './routes/{-$locale}/blog/$slug'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -46,22 +44,10 @@ const ApiRevalidateRoute = ApiRevalidateRouteImport.update({
   path: '/api/revalidate',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char123LocaleChar125BlogIndexRoute =
-  Char123LocaleChar125BlogIndexRouteImport.update({
-    id: '/blog/',
-    path: '/blog/',
-    getParentRoute: () => Char123LocaleChar125RouteRoute,
-  } as any)
 const Char123LocaleChar125ProjectsSlugRoute =
   Char123LocaleChar125ProjectsSlugRouteImport.update({
     id: '/projects/$slug',
     path: '/projects/$slug',
-    getParentRoute: () => Char123LocaleChar125RouteRoute,
-  } as any)
-const Char123LocaleChar125BlogSlugRoute =
-  Char123LocaleChar125BlogSlugRouteImport.update({
-    id: '/blog/$slug',
-    path: '/blog/$slug',
     getParentRoute: () => Char123LocaleChar125RouteRoute,
   } as any)
 
@@ -71,18 +57,14 @@ export interface FileRoutesByFullPath {
   '/api/revalidate': typeof ApiRevalidateRoute
   '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
-  '/{-$locale}/blog/$slug': typeof Char123LocaleChar125BlogSlugRoute
   '/{-$locale}/projects/$slug': typeof Char123LocaleChar125ProjectsSlugRoute
-  '/{-$locale}/blog/': typeof Char123LocaleChar125BlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/revalidate': typeof ApiRevalidateRoute
   '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/{-$locale}': typeof Char123LocaleChar125IndexRoute
-  '/{-$locale}/blog/$slug': typeof Char123LocaleChar125BlogSlugRoute
   '/{-$locale}/projects/$slug': typeof Char123LocaleChar125ProjectsSlugRoute
-  '/{-$locale}/blog': typeof Char123LocaleChar125BlogIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -91,9 +73,7 @@ export interface FileRoutesById {
   '/api/revalidate': typeof ApiRevalidateRoute
   '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
-  '/{-$locale}/blog/$slug': typeof Char123LocaleChar125BlogSlugRoute
   '/{-$locale}/projects/$slug': typeof Char123LocaleChar125ProjectsSlugRoute
-  '/{-$locale}/blog/': typeof Char123LocaleChar125BlogIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -103,18 +83,14 @@ export interface FileRouteTypes {
     | '/api/revalidate'
     | '/{-$locale}/about'
     | '/{-$locale}/'
-    | '/{-$locale}/blog/$slug'
     | '/{-$locale}/projects/$slug'
-    | '/{-$locale}/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sitemap.xml'
     | '/api/revalidate'
     | '/{-$locale}/about'
     | '/{-$locale}'
-    | '/{-$locale}/blog/$slug'
     | '/{-$locale}/projects/$slug'
-    | '/{-$locale}/blog'
   id:
     | '__root__'
     | '/{-$locale}'
@@ -122,9 +98,7 @@ export interface FileRouteTypes {
     | '/api/revalidate'
     | '/{-$locale}/about'
     | '/{-$locale}/'
-    | '/{-$locale}/blog/$slug'
     | '/{-$locale}/projects/$slug'
-    | '/{-$locale}/blog/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -170,25 +144,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRevalidateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/{-$locale}/blog/': {
-      id: '/{-$locale}/blog/'
-      path: '/blog'
-      fullPath: '/{-$locale}/blog/'
-      preLoaderRoute: typeof Char123LocaleChar125BlogIndexRouteImport
-      parentRoute: typeof Char123LocaleChar125RouteRoute
-    }
     '/{-$locale}/projects/$slug': {
       id: '/{-$locale}/projects/$slug'
       path: '/projects/$slug'
       fullPath: '/{-$locale}/projects/$slug'
       preLoaderRoute: typeof Char123LocaleChar125ProjectsSlugRouteImport
-      parentRoute: typeof Char123LocaleChar125RouteRoute
-    }
-    '/{-$locale}/blog/$slug': {
-      id: '/{-$locale}/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/{-$locale}/blog/$slug'
-      preLoaderRoute: typeof Char123LocaleChar125BlogSlugRouteImport
       parentRoute: typeof Char123LocaleChar125RouteRoute
     }
   }
@@ -197,19 +157,15 @@ declare module '@tanstack/react-router' {
 interface Char123LocaleChar125RouteRouteChildren {
   Char123LocaleChar125AboutRoute: typeof Char123LocaleChar125AboutRoute
   Char123LocaleChar125IndexRoute: typeof Char123LocaleChar125IndexRoute
-  Char123LocaleChar125BlogSlugRoute: typeof Char123LocaleChar125BlogSlugRoute
   Char123LocaleChar125ProjectsSlugRoute: typeof Char123LocaleChar125ProjectsSlugRoute
-  Char123LocaleChar125BlogIndexRoute: typeof Char123LocaleChar125BlogIndexRoute
 }
 
 const Char123LocaleChar125RouteRouteChildren: Char123LocaleChar125RouteRouteChildren =
   {
     Char123LocaleChar125AboutRoute: Char123LocaleChar125AboutRoute,
     Char123LocaleChar125IndexRoute: Char123LocaleChar125IndexRoute,
-    Char123LocaleChar125BlogSlugRoute: Char123LocaleChar125BlogSlugRoute,
     Char123LocaleChar125ProjectsSlugRoute:
       Char123LocaleChar125ProjectsSlugRoute,
-    Char123LocaleChar125BlogIndexRoute: Char123LocaleChar125BlogIndexRoute,
   }
 
 const Char123LocaleChar125RouteRouteWithChildren =

@@ -1,19 +1,16 @@
 import { Link } from "@tanstack/react-router";
 
-interface NavLinkBase {
-  active?: boolean;
+export interface NavLinkProps {
+  to: string;
   label: string;
+  active?: boolean;
 }
 
-export type NavLinkProps =
-  | (NavLinkBase & { to: string; href?: never })
-  | (NavLinkBase & { href: string; to?: never });
-
-export default function NavLink({ to, href, active, label }: NavLinkProps) {
-  return to ? (
+export default function NavLink({ to, label, active }: NavLinkProps) {
+  return (
     <Link
       to={to}
-      className={`relative z-10 rounded-full px-4 py-3 text-sm font-medium no-underline ${
+      className={`text-sm font-medium ${
         active
           ? "text-neutral-400 dark:text-neutral-50"
           : "text-neutral-400 dark:text-neutral-200"
@@ -21,7 +18,5 @@ export default function NavLink({ to, href, active, label }: NavLinkProps) {
     >
       {label}
     </Link>
-  ) : (
-    <a href={href}>{label}</a>
   );
 }
