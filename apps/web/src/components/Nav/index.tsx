@@ -1,6 +1,5 @@
 import { Fragment, type ReactNode } from "react";
 import NavLink, { type NavLinkProps } from "./Link";
-import NavAccessory from "./Accessory";
 
 export interface NavProps {
   links: NavLinkProps[];
@@ -30,29 +29,33 @@ export default function Nav({ links, renderLink, renderAccessory }: NavProps) {
           className="absolute inset-0 nav-shadow bg-neutral-950/30 dark:bg-neutral-950/90 backdrop-blur-md backdrop-saturate-50"
           aria-hidden="true"
         />
-        <div className="flex items-stretch">
+        <div className="items-stretch">
           <nav
-            className="flex min-w-0 items-center overflow-x-auto 
-              [scrollbar-width:none] [&::-webkit-scrollbar]:hidden mx-4"
+            className="flex min-w-0 overflow-x-auto 
+              [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             aria-label="Main"
           >
-            {links.map((link, index) => (
-              <Fragment key={link.to}>
-                {renderLink ? renderLink(link) : <NavLink {...link} />}
-                {index < links.length - 1 && (
-                  <span
-                    className="relative z-10 text-neutral-500"
-                    aria-hidden="true"
-                  >
-                    ·
-                  </span>
-                )}
-              </Fragment>
-            ))}
+            <div className="flex items-center mx-4">
+              {links.map((link, index) => (
+                <Fragment key={link.to}>
+                  {renderLink ? renderLink(link) : <NavLink {...link} />}
+                  {index < links.length - 1 && (
+                    <span
+                      className="relative z-10 text-neutral-500"
+                      aria-hidden="true"
+                    >
+                      ·
+                    </span>
+                  )}
+                </Fragment>
+              ))}
+            </div>
+            <div className="cta-shape bg-linear-to-tl from-accent-500/75 to-accent-300/50 dark:from-accent-200/75 dark:to-accent-50/50 backdrop-blur-md backdrop-saturate-50 text-neutral-50">
+              {renderAccessory && renderAccessory()}
+            </div>
           </nav>
         </div>
       </div>
-      {renderAccessory && <NavAccessory>{renderAccessory()}</NavAccessory>}
     </>
   );
 }
