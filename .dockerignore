@@ -1,0 +1,11 @@
+node_modules
+.git
+.next
+dist
+.output
+.vinxi
+data
+*.wt
+.env
+.env.*
+!.env.example

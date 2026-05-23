@@ -1,0 +1,43 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+catalog:
+  '@eslint/eslintrc': ^3.3.1
+  '@inlang/paraglide-js': ^2.18.1
+  '@payloadcms/db-mongodb': 3.84.1
+  '@payloadcms/next': 3.84.1
+  '@payloadcms/richtext-lexical': 3.84.1
+  '@payloadcms/ui': 3.84.1
+  '@playwright/test': 1.60.0
+  '@tailwindcss/typography': ^0.5.19
+  '@tailwindcss/vite': ^4.3.0
+  '@tanstack/devtools-vite': 0.7.0
+  '@tanstack/react-router': 1.170.6
+  '@tanstack/react-router-devtools': 1.167.0
+  '@tanstack/react-start': 1.168.9
+  '@types/node': 25.9.1
+  '@types/react': 19.2.15
+  '@types/react-dom': 19.2.3
+  '@vitejs/plugin-react': ^6.0.2
+  cross-env: ^10.1.0
+  dotenv: 17.4.2
+  eslint: ^10.4.0
+  eslint-config-next: 16.2.6
+  graphql: ^16.14.0
+  jsdom: ^29.1.1
+  lucide-react: ^1.16.0
+  next: 16.2.6
+  nitro: 3.0.260429-beta
+  payload: 3.84.1
+  prettier: ^3.8.3
+  react: 19.2.6
+  react-dom: 19.2.6
+  sharp: 0.34.5
+  tailwindcss: ^4.3.0
+  tsx: 4.22.3
+  turbo: ^2.9.14
+  typescript: 6.0.3
+  vite: ^8.0.13
+  vitest: 4.1.7
+  zod: ^4.4.3

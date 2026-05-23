@@ -1,0 +1,590 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme {
+  --color-*: initial;
+
+  --spacing-page: min(900px, calc(100% - clamp(2.5rem, 6vw, 4rem)));
+  --spacing-header: clamp(1rem, 4vw, 4rem);
+  --spacing-nav: clamp(0.5rem, 4vw, 1rem);
+  --spacing-cta: clamp(1rem, 8vw, 2rem);
+
+  --inset-shadow-underline: 0px 6px 0px 0px var(--color-accent-underline);
+
+  --color-white: white;
+  --color-black: black;
+
+  --color-neutral-10: oklch(0.99 0.005 275);
+  --color-neutral-50: oklch(0.968 0.017 278);
+  --color-neutral-100: oklch(0.875 0.035 280);
+  --color-neutral-200: oklch(0.745 0.025 275);
+  --color-neutral-300: oklch(0.625 0.02 275);
+  --color-neutral-400: oklch(0.525 0.01 275);
+  --color-neutral-500: oklch(0.495 0.025 270);
+  --color-neutral-600: oklch(0.375 0.05 275);
+  --color-neutral-700: oklch(0.325 0.035 275);
+  --color-neutral-800: oklch(0.23 0.02 279.71);
+  --color-neutral-900: oklch(0.202 0.018 278 / 1);
+  --color-neutral-950: oklch(0.134 0.01 278.81 / 1);
+
+  --color-cyan-300: oklch(0.68 0.25 255.75);
+
+  --color-sky-400: oklch(0.76 0.17 213.48);
+  --color-indigo-600: oklch(0.56 0.26 260.99);
+
+  --color-lavender-50: oklch(0.97 0.02 312.94);
+  --color-lavender-300: oklch(0.76 0.1 291.3);
+  --color-lavender-400: oklch(0.67 0.2 287.37);
+  --color-lavender-700: oklch(0.42 0.08 311.46);
+  --color-lavender-800: oklch(0.42 0.08 311.46);
+  --color-lavender-900: oklch(0.42 0.08 311.46);
+  --color-lavender-950: oklch(0.18 0.05 310.51);
+
+  --color-gold-200: oklch(0.85 0.07 52.4);
+  --color-gold-300: oklch(0.78 0.18 50.27);
+
+  --color-accent-50: oklch(0.875 0.075 275);
+  --color-accent-100: oklch(0.75 0.1 275);
+  --color-accent-200: oklch(0.675 0.15 275);
+  --color-accent-300: oklch(0.6 0.15 275);
+  --color-accent-500: oklch(0.45 0.25 275);
+  --color-accent-700: oklch(0.3 0.25 275);
+  --color-accent-900: oklch(0.15 0.25 275);
+  --color-accent-950: oklch(0.1 0.25 275);
+
+  --color-surface-1-light: oklch(100% 0.1 275deg);
+  --color-surface-1-dark: oklch(15% 0.2 275deg);
+  --color-on-surface-1-light: oklch(from var(--color-surface-1) 50% 0.05 h);
+  --color-on-surface-1-dark: oklch(from var(--color-surface-1) 50% 0.05 h);
+  --color-on-surface-1-strong-light: oklch(
+    from var(--color-on-surface-1) 25% c h
+  );
+  --color-on-surface-1-strong-dark: oklch(
+    from var(--color-on-surface-1) 60% c h
+  );
+
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
+
+  --text-hero: clamp(3rem, 8vw, 5rem);
+  --text-hero--line-height: 0.95;
+  --text-hero--letter-spacing: 0;
+  --text-display: clamp(2rem, 5vw, 4rem);
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: 0;
+  --text-title: clamp(1.5rem, 3vw, 2.25rem);
+  --text-title--line-height: 1.1;
+  --text-title--letter-spacing: 0;
+  --text-lede: clamp(1.0625rem, 1.4vw, 1.25rem);
+  --text-lede--line-height: 1.55;
+  --text-lede--letter-spacing: 0;
+  --text-body: 1rem;
+  --text-body--line-height: 1.85;
+  --text-body--letter-spacing: 0;
+  --text-ui: 0.875rem;
+  --text-ui--line-height: 1.35;
+  --text-ui--letter-spacing: 0;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.4;
+  --text-caption--letter-spacing: 0;
+
+  --color-foreground: var(--color-neutral-950);
+  --color-muted-foreground: var(--color-neutral-800);
+  --color-subtle-foreground: color-mix(
+    in oklab,
+    var(--color-neutral-950) 62%,
+    transparent
+  );
+  --color-inverse-foreground: var(--color-neutral-10);
+  --color-accent-link: var(--color-lavender-950);
+  --color-accent-link-hover: var(--color-lavender-700);
+  --color-accent-border: var(--color-lavender-400);
+  --color-accent-underline: oklch(0.66 0.19 288.44 / 0.25);
+  --color-accent-solid: var(--color-lavender-400);
+  --color-accent-solid-foreground: var(--color-lavender-50);
+  --color-page-bg: var(--color-neutral-10);
+  --color-panel-bg: var(--color-neutral-50);
+  --color-panel-bg-soft: color-mix(
+    in oklab,
+    var(--color-neutral-50) 72%,
+    var(--color-lavender-50)
+  );
+  --color-panel-border: color-mix(
+    in oklab,
+    var(--color-neutral-200) 65%,
+    transparent
+  );
+  --color-topography-stroke: var(--color-neutral-950);
+  --color-elevation-shadow: color-mix(
+    in oklab,
+    var(--color-neutral-950) 20%,
+    transparent
+  );
+  --color-elevation-glow: color-mix(
+    in oklab,
+    var(--color-lavender-400) 30%,
+    transparent
+  );
+
+  --animate-rise-in: rise-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@layer base {
+  body {
+    @apply text-body text-foreground;
+  }
+
+  [data-theme="dark"] {
+    --color-foreground: oklch(0.955 0.012 286);
+    --color-muted-foreground: oklch(0.78 0.025 286);
+    --color-subtle-foreground: color-mix(
+      in oklab,
+      var(--color-neutral-10) 56%,
+      transparent
+    );
+    --color-inverse-foreground: var(--color-neutral-950);
+    --color-accent-link: var(--color-lavender-300);
+    --color-accent-link-hover: oklch(0.84 0.08 292);
+    --color-accent-border: color-mix(
+      in oklab,
+      var(--color-lavender-300) 78%,
+      transparent
+    );
+    --color-accent-underline: color-mix(
+      in oklab,
+      var(--color-lavender-300) 22%,
+      transparent
+    );
+    --color-accent-solid: var(--color-lavender-300);
+    --color-accent-solid-foreground: var(--color-neutral-950);
+    --color-page-bg: var(--color-neutral-900);
+    --color-panel-bg: var(--color-neutral-800);
+    --color-panel-bg-soft: oklch(0.255 0.033 286);
+    --color-panel-border: color-mix(
+      in oklab,
+      var(--color-lavender-300) 20%,
+      transparent
+    );
+    --color-topography-stroke: var(--color-lavender-300);
+    --color-elevation-shadow: color-mix(
+      in oklab,
+      black 72%,
+      transparent
+    );
+    --color-elevation-glow: color-mix(
+      in oklab,
+      var(--color-lavender-300) 18%,
+      transparent
+    );
+  }
+}
+
+@utility type-hero {
+  @apply font-display text-hero font-bold text-foreground text-balance;
+}
+
+@utility type-heading {
+  @apply font-display text-display font-bold text-foreground text-balance;
+}
+
+@utility type-title {
+  @apply font-display text-title font-bold text-foreground text-balance;
+}
+
+@utility type-lede {
+  @apply text-lede text-muted-foreground text-balance;
+}
+
+@utility type-body {
+  @apply text-body text-foreground;
+}
+
+@utility type-meta {
+  @apply text-caption font-bold text-muted-foreground;
+}
+
+@utility type-ui {
+  @apply text-ui font-medium;
+}
+
+@utility type-button {
+  @apply text-ui font-semibold;
+}
+
+@utility type-prose {
+  @apply prose max-w-none text-body;
+  --tw-prose-body: var(--color-foreground);
+  --tw-prose-headings: var(--color-foreground);
+  --tw-prose-lead: var(--color-muted-foreground);
+  --tw-prose-links: var(--color-accent-link);
+  --tw-prose-bold: var(--color-foreground);
+  --tw-prose-counters: var(--color-subtle-foreground);
+  --tw-prose-bullets: var(--color-subtle-foreground);
+  --tw-prose-hr: var(--color-panel-border);
+  --tw-prose-quotes: var(--color-foreground);
+  --tw-prose-quote-borders: var(--color-accent-border);
+  --tw-prose-captions: var(--color-muted-foreground);
+  --tw-prose-code: var(--color-foreground);
+  --tw-prose-pre-code: var(--color-neutral-10);
+  --tw-prose-pre-bg: var(--color-neutral-950);
+  --tw-prose-th-borders: var(--color-panel-border);
+  --tw-prose-td-borders: var(--color-panel-border);
+  --tw-prose-invert-body: var(--color-foreground);
+  --tw-prose-invert-headings: var(--color-foreground);
+  --tw-prose-invert-lead: var(--color-muted-foreground);
+  --tw-prose-invert-links: var(--color-accent-link);
+  --tw-prose-invert-bold: var(--color-foreground);
+  --tw-prose-invert-counters: var(--color-subtle-foreground);
+  --tw-prose-invert-bullets: var(--color-subtle-foreground);
+  --tw-prose-invert-hr: var(--color-panel-border);
+  --tw-prose-invert-quotes: var(--color-foreground);
+  --tw-prose-invert-quote-borders: var(--color-accent-border);
+  --tw-prose-invert-captions: var(--color-muted-foreground);
+  --tw-prose-invert-code: var(--color-foreground);
+  --tw-prose-invert-pre-code: var(--color-neutral-10);
+  --tw-prose-invert-pre-bg: var(--color-neutral-950);
+  --tw-prose-invert-th-borders: var(--color-panel-border);
+  --tw-prose-invert-td-borders: var(--color-panel-border);
+
+  & :where(h2, h3, h4) {
+    font-family: var(--font-display);
+    letter-spacing: 0;
+  }
+
+  & :where(picture) {
+    display: block;
+    margin-block: 2.5rem;
+  }
+
+  & :where(img) {
+    width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    object-fit: cover;
+  }
+
+  & :where(picture img) {
+    margin-block: 0;
+  }
+}
+
+@utility nav-drop-shadow {
+  box-shadow:
+    0px 4px 6px -2px
+      var(--color-elevation-shadow),
+    0px 12px 24px -16px var(--color-elevation-glow);
+}
+
+@utility hero-shape {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 100%;
+  --hero-curve-depth: .75rem;
+  overflow: hidden;
+  clip-path: shape(
+    from 0 0,
+    hline to 100%,
+    vline to calc(100% - var(--hero-curve-depth)),
+    curve to 0 calc(100% - var(--hero-curve-depth)) with 50%
+      calc(100% + var(--hero-curve-depth)),
+    close
+  );
+}
+
+.hero-topography {
+  position: absolute;
+  inset-inline: 0;
+  top: -10rem;
+  height: calc(100% + 20rem);
+  background-color: var(--color-topography-stroke);
+  mask-image: url("/topography.svg");
+  mask-position: top left;
+  mask-repeat: repeat;
+  mask-size: 512px 512px;
+  -webkit-mask-image: url("/topography.svg");
+  -webkit-mask-position: top left;
+  -webkit-mask-repeat: repeat;
+  -webkit-mask-size: 512px 512px;
+  pointer-events: none;
+  transform: translate3d(0, -4rem, 0);
+}
+
+@supports (animation-timeline: scroll()) {
+  .hero-topography {
+    animation: hero-topography-parallax linear both;
+    animation-timeline: scroll(root block);
+    will-change: transform;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-topography {
+    animation: none;
+    transform: translate3d(0, -4rem, 0);
+  }
+}
+
+@keyframes hero-topography-parallax {
+  from {
+    transform: translate3d(0, -7rem, 0);
+  }
+
+  to {
+    transform: translate3d(0, 7rem, 0);
+  }
+}
+
+@utility squiggle {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  --hero-curve-depth: clamp(2.5rem, 8vw, 6rem);
+  --squiggle-thickness: clamp(0.5rem, 1vw, 0.75rem);
+  clip-path: shape(
+    from 58% calc(100% - var(--squiggle-thickness)),
+    curve to 62% calc(100% - var(--squiggle-thickness)) with 60%
+      calc(
+        100% - var(--hero-curve-depth) * 0.02 - var(--squiggle-thickness) * 2.6
+      ),
+    curve to 66%
+      calc(100% - var(--hero-curve-depth) * 0.1 - var(--squiggle-thickness))
+      with 64% calc(100% + var(--squiggle-thickness) * 0.4),
+    curve to 70%
+      calc(100% - var(--hero-curve-depth) * 0.16 - var(--squiggle-thickness))
+      with 68%
+      calc(
+        100% - var(--hero-curve-depth) * 0.1 - var(--squiggle-thickness) * 2.8
+      ),
+    curve to 74%
+      calc(100% - var(--hero-curve-depth) * 0.24 - var(--squiggle-thickness))
+      with 72%
+      calc(
+        100% - var(--hero-curve-depth) * 0.1 + var(--squiggle-thickness) * 0.5
+      ),
+    curve to 78%
+      calc(100% - var(--hero-curve-depth) * 0.32 - var(--squiggle-thickness))
+      with 76%
+      calc(
+        100% - var(--hero-curve-depth) * 0.32 - var(--squiggle-thickness) * 3
+      ),
+    curve to 82%
+      calc(100% - var(--hero-curve-depth) * 0.42 - var(--squiggle-thickness))
+      with 80%
+      calc(
+        100% - var(--hero-curve-depth) * 0.24 + var(--squiggle-thickness) * 0.2
+      ),
+    curve to 86%
+      calc(100% - var(--hero-curve-depth) * 0.52 - var(--squiggle-thickness))
+      with 84%
+      calc(
+        100% - var(--hero-curve-depth) * 0.52 - var(--squiggle-thickness) * 3
+      ),
+    curve to 90%
+      calc(100% - var(--hero-curve-depth) * 0.64 - var(--squiggle-thickness))
+      with 88%
+      calc(
+        100% - var(--hero-curve-depth) * 0.42 + var(--squiggle-thickness) * 0.2
+      ),
+    curve to 94%
+      calc(100% - var(--hero-curve-depth) * 0.78 - var(--squiggle-thickness))
+      with 92%
+      calc(
+        100% - var(--hero-curve-depth) * 0.78 - var(--squiggle-thickness) * 3.2
+      ),
+    curve to 100%
+      calc(100% - var(--hero-curve-depth) - var(--squiggle-thickness)) with 97%
+      calc(
+        100% - var(--hero-curve-depth) * 0.74 + var(--squiggle-thickness) * 0.2
+      ),
+    line to 100%
+      calc(100% - var(--hero-curve-depth) + var(--squiggle-thickness)),
+    curve to 94%
+      calc(100% - var(--hero-curve-depth) * 0.78 + var(--squiggle-thickness))
+      with 97%
+      calc(
+        100% - var(--hero-curve-depth) * 0.74 + var(--squiggle-thickness) * 2.2
+      ),
+    curve to 90%
+      calc(100% - var(--hero-curve-depth) * 0.64 + var(--squiggle-thickness))
+      with 92%
+      calc(
+        100% - var(--hero-curve-depth) * 0.78 - var(--squiggle-thickness) * 1.2
+      ),
+    curve to 86%
+      calc(100% - var(--hero-curve-depth) * 0.52 + var(--squiggle-thickness))
+      with 88%
+      calc(
+        100% - var(--hero-curve-depth) * 0.42 + var(--squiggle-thickness) * 2.2
+      ),
+    curve to 82%
+      calc(100% - var(--hero-curve-depth) * 0.42 + var(--squiggle-thickness))
+      with 84%
+      calc(
+        100% - var(--hero-curve-depth) * 0.52 - var(--squiggle-thickness) * 1
+      ),
+    curve to 78%
+      calc(100% - var(--hero-curve-depth) * 0.32 + var(--squiggle-thickness))
+      with 80%
+      calc(
+        100% - var(--hero-curve-depth) * 0.24 + var(--squiggle-thickness) * 2.2
+      ),
+    curve to 74%
+      calc(100% - var(--hero-curve-depth) * 0.24 + var(--squiggle-thickness))
+      with 76%
+      calc(100% - var(--hero-curve-depth) * 0.32 - var(--squiggle-thickness)),
+    curve to 70%
+      calc(100% - var(--hero-curve-depth) * 0.16 + var(--squiggle-thickness))
+      with 72%
+      calc(
+        100% - var(--hero-curve-depth) * 0.1 + var(--squiggle-thickness) * 2.5
+      ),
+    curve to 66%
+      calc(100% - var(--hero-curve-depth) * 0.1 + var(--squiggle-thickness))
+      with 68%
+      calc(
+        100% - var(--hero-curve-depth) * 0.1 - var(--squiggle-thickness) * 0.8
+      ),
+    curve to 62% calc(100% + var(--squiggle-thickness)) with 64%
+      calc(100% + var(--squiggle-thickness) * 2.4),
+    curve to 58% var(--squiggle-thickness) with 60%
+      calc(
+        100% - var(--hero-curve-depth) * 0.02 + var(--squiggle-thickness) * 2.2
+      ),
+    close
+  );
+}
+
+@utility pinned-circle {
+  position: absolute;
+  --angle: 135deg;
+  --size: 140vmax;
+  --radius: calc(var(--size) / 2);
+  width: var(--size);
+  aspect-ratio: 1 / 1;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%)
+    translate(
+      calc(cos(var(--angle)) * var(--radius) * -1),
+      calc(sin(var(--angle)) * var(--radius))
+    );
+}
+
+@utility nav-shape {
+  clip-path: shape(
+    from 0 8px,
+    line to 8px 0,
+    hline to calc(100% - 8px),
+    arc to 100% 8px of 8px 8px cw,
+    vline to calc(100% - 8px),
+    line to calc(100% - 8px) 100%,
+    hline to 8px,
+    arc to 0 calc(100% - 8px) of 8px 8px cw,
+    close
+  );
+}
+
+@utility nav-accent-l {
+  clip-path: shape(
+    from 4px 9px,
+    line to 6px 7px,
+    line to 12px calc(100% - 4px),
+    hline to 8px,
+    arc to 4px calc(100% - 8px) of 4px 4px cw,
+    close
+  );
+}
+
+@utility nav-accent-r {
+  clip-path: shape(
+    from 7px 6px,
+    line to 9px 4px,
+    line to 24px calc(100% - 4px),
+    hline to 16px,
+    close
+  );
+}
+
+@utility nav-highlight {
+  clip-path: shape(
+    from 1px 8.5px,
+    line to 8.5px 1px,
+    hline to calc(100% - 8px),
+    arc to calc(100% - 1px) 8px of 7px 7px cw,
+    vline to calc(100% - 8.5px),
+    line to calc(100% - 8.5px) calc(100% - 1px),
+    hline to 8px,
+    arc to 1px calc(100% - 8px) of 7px 7px cw,
+    vline to 8.5px,
+    hline to 2px,
+    vline to calc(100% - 8px),
+    arc to 8px calc(100% - 2px) of 6px 6px,
+    hline to calc(100% - 9px),
+    line to calc(100% - 2px) calc(100% - 9px),
+    vline to 8px,
+    arc to calc(100% - 8px) 2px of 6px 6px,
+    hline to 9px,
+    line to 2px 9px,
+    close
+  );
+}
+
+@utility nav-shadow {
+  clip-path: shape(
+    from 0 8px,
+    line to 8px 0,
+    hline to calc(100% - 8px),
+    arc to 100% 8px of 8px 8px cw,
+    vline to calc(100% - 8px),
+    line to calc(100% - 8px) 100%,
+    hline to 8px,
+    arc to 0 calc(100% - 8px) of 8px 8px cw,
+    vline to 8px,
+    hline to 1px,
+    vline to calc(100% - 8px),
+    arc to 8px calc(100% - 1px) of 7px 7px,
+    hline to calc(100% - 8.5px),
+    line to calc(100% - 1px) calc(100% - 8.5px),
+    vline to 8px,
+    arc to calc(100% - 8px) 1px of 7px 7px,
+    hline to 8.5px,
+    line to 1px 8.5px,
+    close
+  );
+}
+
+@utility overlap-b {
+  position: absolute;
+  transform: translateY(calc(100% - 0.375em));
+  bottom: 0.25em;
+}
+
+@utility cta-shape {
+  clip-path: shape(
+    from 0 4px,
+    hline to calc(100% - 8px),
+    arc to calc(100% - 4px) 8px of 4px 4px cw,
+    vline to calc(100% - 10px),
+    line to calc(100% - 10px) calc(100% - 4px),
+    hline to 8px,
+    arc to 0 calc(100% - 12px) of 8px 8px cw,
+    vline to 12px,
+    arc to 8px 4px of 8px 8px cw,
+    close
+  );
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

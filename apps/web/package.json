@@ -1,0 +1,42 @@
+{
+  "name": "@portfolio/web",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#/*": "./src/*"
+  },
+  "dependencies": {
+    "@inlang/paraglide-js": "catalog:",
+    "@payloadcms/richtext-lexical": "catalog:",
+    "@portfolio/types": "workspace:*",
+    "@tanstack/react-router": "catalog:",
+    "@tanstack/react-router-devtools": "catalog:",
+    "@tanstack/react-start": "catalog:",
+    "lucide-react": "catalog:",
+    "nitro": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@tanstack/devtools-vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "sharp": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "scripts": {
+    "dev": "vite dev --port 3000 --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "favicons": "node scripts/generate-favicons.mjs"
+  }
+}
