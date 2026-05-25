@@ -1,8 +1,6 @@
 import { z } from "zod";
 import {
   baseLocale,
-  generateStaticLocalizedUrls,
-  getLocaleForUrl,
   isLocale,
   locales,
   localizeHref,
@@ -32,13 +30,11 @@ export function ogLocaleAlternates(locale: Locale): string[] {
 
 /** Generate <link rel="alternate" hreflang> entries for a given base path. */
 export function hreflangLinks(basePath: string) {
-  const urls = generateStaticLocalizedUrls([`${SITE_URL}${basePath}`]);
-
   return [
-    ...urls.map((url) => ({
+    ...locales.map((locale) => ({
       rel: "alternate",
-      hrefLang: getLocaleForUrl(url),
-      href: url.href,
+      hrefLang: locale,
+      href: `${SITE_URL}${localizeHref(basePath, { locale })}`,
     })),
     {
       rel: "alternate",
