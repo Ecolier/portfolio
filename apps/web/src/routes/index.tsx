@@ -12,6 +12,7 @@ import { Link } from "lucide-react";
 import { localizeHref } from "@/paraglide/runtime.js";
 import { m } from "@/paraglide/messages.js";
 import { cleanMetaContent, SITE_NAME, socialImageMeta } from "@/lib/seo";
+import topographyUrl from "@/assets/topography.svg?url";
 
 export const Route = createFileRoute("/")({
   staticData: {
@@ -108,7 +109,11 @@ function Home() {
     <div className="flex flex-col gap-12 bg-page-bg">
       <div className="relative">
         <div className="hero-shape bg-panel-bg">
-          <div className="hero-topography"></div>
+          <div
+            className="hero-topography"
+            style={{ "--topography-url": `url(${topographyUrl})` }}
+            aria-hidden="true"
+          />
           <div className="absolute inset-0 bg-linear-to-b from-panel-bg to-panel-bg/0 "></div>
         </div>
         <div className="relative py-12 w-page mx-auto">

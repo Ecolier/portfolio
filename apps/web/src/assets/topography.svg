@@ -5,7 +5,7 @@
   <title>Seamless repeating topographical map pattern</title>
   <desc>White background with black contour lines. Opposite edges align because the underlying contour field is periodic.</desc>
   <g fill="none"
-     stroke="var(--color-neutral-950, currentColor)"
+     stroke="currentColor"
      opacity=".05"
      stroke-width="1.25"
      stroke-linecap="round"

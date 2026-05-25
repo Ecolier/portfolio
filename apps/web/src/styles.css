@@ -168,11 +168,7 @@
       transparent
     );
     --color-topography-stroke: var(--color-lavender-300);
-    --color-elevation-shadow: color-mix(
-      in oklab,
-      black 72%,
-      transparent
-    );
+    --color-elevation-shadow: color-mix(in oklab, black 72%, transparent);
     --color-elevation-glow: color-mix(
       in oklab,
       var(--color-lavender-300) 18%,
@@ -272,8 +268,7 @@
 
 @utility nav-drop-shadow {
   box-shadow:
-    0px 4px 6px -2px
-      var(--color-elevation-shadow),
+    0px 4px 6px -2px var(--color-elevation-shadow),
     0px 12px 24px -16px var(--color-elevation-glow);
 }
 
@@ -282,7 +277,7 @@
   inset-inline: 0;
   bottom: 0;
   height: 100%;
-  --hero-curve-depth: .75rem;
+  --hero-curve-depth: 0.75rem;
   overflow: hidden;
   clip-path: shape(
     from 0 0,
@@ -300,11 +295,11 @@
   top: -10rem;
   height: calc(100% + 20rem);
   background-color: var(--color-topography-stroke);
-  mask-image: url("/topography.svg");
+  mask-image: var(--topography-url);
   mask-position: top left;
   mask-repeat: repeat;
   mask-size: 512px 512px;
-  -webkit-mask-image: url("/topography.svg");
+  -webkit-mask-image: var(--topography-url);
   -webkit-mask-position: top left;
   -webkit-mask-repeat: repeat;
   -webkit-mask-size: 512px 512px;
