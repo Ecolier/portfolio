@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
-import { CMS_URL, CMS_PUBLIC_URL } from "@/lib/cms";
+import { absoluteCMSUrl, CMS_URL } from "@/lib/cms";
 import { localeSchema } from "@/lib/locale";
 import { z } from "zod";
 
@@ -11,11 +11,6 @@ type UnknownRecord = Record<string, unknown>;
 type MediaWithSizes = Media & {
   sizes?: NormalizedMedia["sizes"];
 };
-
-function absoluteCMSUrl(url?: string | null) {
-  if (!url) return url;
-  return url.startsWith("http") ? url : `${CMS_PUBLIC_URL}${url}`;
-}
 
 function normalizeMedia(media: Media | string | null | undefined) {
   if (!media || typeof media !== "object") return null;

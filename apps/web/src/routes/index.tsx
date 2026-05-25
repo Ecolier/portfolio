@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link as RouterLink } from "@tanstack/react-router";
 import { getProjects } from "@/functions/getProjects";
 import { getHomePage, getSiteSettings } from "@/functions/getGlobals";
 import type { Locale } from "@/lib/locale";
@@ -11,6 +11,7 @@ import {
 import { Link } from "lucide-react";
 import { localizeHref } from "@/paraglide/runtime.js";
 import { m } from "@/paraglide/messages.js";
+import { cleanMetaContent, SITE_NAME, socialImageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
   staticData: {
@@ -40,10 +41,11 @@ export const Route = createFileRoute("/")({
     const { homePage, siteSettings } = loaderData;
     const title =
       homePage.metaTitle || siteSettings.siteTitle || "Evan Gruère's Portfolio";
-    const description =
+    const description = cleanMetaContent(
       homePage.metaDescription ||
-      siteSettings.siteDescription ||
-      "Portfolio of Evan Gruère, software engineer.";
+        siteSettings.siteDescription ||
+        "Portfolio of Evan Gruère, software engineer.",
+    );
     return {
       meta: [
         { title },
@@ -52,13 +54,14 @@ export const Route = createFileRoute("/")({
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
         { property: "og:url", content: canonicalUrl },
-        { property: "og:site_name", content: "Evan Gruère" },
+        { property: "og:site_name", content: SITE_NAME },
         { property: "og:locale", content: ogLocale(locale) },
         ...ogLocaleAlternates(locale).map((alt) => ({
           property: "og:locale:alternate",
           content: alt,
         })),
-        { name: "twitter:card", content: "summary" },
+        ...socialImageMeta(undefined, description),
+        { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
       ],
@@ -100,7 +103,6 @@ function Home() {
   };
   const { projects, homePage } = loaderData;
   const { locale } = Route.useRouteContext();
-  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col gap-12 bg-page-bg">
@@ -138,25 +140,30 @@ function Home() {
                 {project.company && (
                   <p className="type-meta mb-2">{project.company}</p>
                 )}
+                <h2 className="type-title">
+                  <RouterLink
+                    to={localizeHref(`/projects/${project.slug}`, {
+                      locale,
+                    })}
+                    className="no-underline text-foreground"
+                  >
+                    {project.name}
+                  </RouterLink>
+                </h2>
                 {project.excerpt && (
                   <p className="type-lede mt-3 max-w-[clamp(38ch,52vw,52ch)]">
                     {project.excerpt}
                   </p>
                 )}
                 <div className="flex mt-4 align-center justify-end">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate({
-                        to: localizeHref(`/projects/${project.slug}`, {
-                          locale,
-                        }),
-                      })
-                    }
+                  <RouterLink
+                    to={localizeHref(`/projects/${project.slug}`, {
+                      locale,
+                    })}
                     className="type-button border-b-2 border-b-accent-border text-accent-link hover:text-accent-link-hover inset-shadow-underline py-2"
                   >
                     {m.cta_view_project()}
-                  </button>
+                  </RouterLink>
                   {project.repository && (
                     <a
                       href={project.repository}
