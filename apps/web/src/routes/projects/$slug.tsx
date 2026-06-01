@@ -4,13 +4,14 @@ import { RichText } from "@payloadcms/richtext-lexical/react";
 import { getProject } from "@/functions/getProjects";
 import type { Locale } from "@/lib/locale";
 import {
+  canonicalUrl,
   hreflangLinks,
-  SITE_URL,
   ogLocale,
   ogLocaleAlternates,
 } from "@/lib/locale";
 import { localizeHref } from "@/paraglide/runtime.js";
 import { m } from "@/paraglide/messages.js";
+import { cleanMetaContent, SITE_NAME, socialImageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/projects/$slug")({
   staticData: {
@@ -32,11 +33,13 @@ export const Route = createFileRoute("/projects/$slug")({
     const locale = match.context.locale as Locale;
     const slug = params.slug;
     const basePath = `/projects/${slug}`;
-    const canonical = localizeHref(basePath, { locale });
-    const canonicalUrl = `${SITE_URL}${canonical}`;
+    const pageCanonicalUrl = canonicalUrl(basePath, locale);
     const title = `${loaderData.name}${loaderData.company ? ` — ${loaderData.company}` : ""} | Evan Gruère`;
-    const description =
-      loaderData.excerpt || `${loaderData.name} — a project by Evan Gruère.`;
+    const description = cleanMetaContent(
+      loaderData.excerpt || `${loaderData.name} — a project by Evan Gruère.`,
+    );
+    const socialImage = loaderData.detailImage?.url;
+    const socialImageAlt = loaderData.detailImage?.alt || description;
     return {
       meta: [
         { title },
@@ -44,30 +47,18 @@ export const Route = createFileRoute("/projects/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
-        { property: "og:url", content: canonicalUrl },
-        { property: "og:site_name", content: "Evan Gruère" },
+        { property: "og:url", content: pageCanonicalUrl },
+        { property: "og:site_name", content: SITE_NAME },
         { property: "og:locale", content: ogLocale(locale) },
         ...ogLocaleAlternates(locale).map((alt) => ({
           property: "og:locale:alternate",
           content: alt,
         })),
-        ...(loaderData.detailImage?.url
-          ? [
-              {
-                property: "og:image",
-                content: loaderData.detailImage.url,
-              },
-              {
-                property: "og:image:alt",
-                content: loaderData.detailImage.alt,
-              },
-              { name: "twitter:card", content: "summary_large_image" },
-              {
-                name: "twitter:image",
-                content: loaderData.detailImage.url,
-              },
-            ]
-          : [{ name: "twitter:card", content: "summary" }]),
+        ...socialImageMeta(socialImage, socialImageAlt, {
+          width: loaderData.detailImage?.width,
+          height: loaderData.detailImage?.height,
+        }),
+        { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
         ...(loaderData.keywords?.length
@@ -83,7 +74,7 @@ export const Route = createFileRoute("/projects/$slug")({
         },
       ],
       links: [
-        { rel: "canonical", href: canonicalUrl },
+        { rel: "canonical", href: pageCanonicalUrl },
         ...hreflangLinks(basePath),
       ],
       scripts: [

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { CMS_URL, CMS_PUBLIC_URL } from "@/lib/cms";
+import { absoluteCMSUrl, CMS_URL } from "@/lib/cms";
 import type {
   HomePage as HomePageDoc,
   SiteSetting as SiteSettingDoc,
@@ -35,7 +35,7 @@ export const getAboutPage = createServerFn()
     const photo =
       data.photo && typeof data.photo === "object" && data.photo.url
         ? {
-            url: `${CMS_PUBLIC_URL}${data.photo.url}`,
+            url: absoluteCMSUrl(data.photo.url) || "",
             alt: data.photo.alt || "",
           }
         : null;

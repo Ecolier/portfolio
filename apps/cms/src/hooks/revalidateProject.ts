@@ -4,7 +4,7 @@ const WEB_URL = process.env.WEB_URL || 'http://localhost:3000'
 const REVALIDATE_SECRET = process.env.REVALIDATE_SECRET || ''
 
 export const revalidateProject: CollectionAfterChangeHook = async ({ doc, operation }) => {
-  const paths = ['/', `/projects/${doc.Slug || doc.id}`]
+  const paths = ['/', `/projects/${doc.slug || doc.id}`]
 
   try {
     const res = await fetch(`${WEB_URL}/api/revalidate`, {

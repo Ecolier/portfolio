@@ -1,8 +1,6 @@
 import { z } from "zod";
 import {
   baseLocale,
-  generateStaticLocalizedUrls,
-  getLocaleForUrl,
   isLocale,
   locales,
   localizeHref,
@@ -30,20 +28,28 @@ export function ogLocaleAlternates(locale: Locale): string[] {
   return locales.filter((l) => l !== locale).map((l) => OG_LOCALE_MAP[l]);
 }
 
+/** Generate an absolute localized URL for a base path. */
+export function localizedUrl(basePath: string, locale: Locale): string {
+  return `${SITE_URL}${localizeHref(basePath, { locale })}`;
+}
+
+/** Generate the self-referencing canonical URL for a localized page. */
+export function canonicalUrl(basePath: string, locale: Locale): string {
+  return localizedUrl(basePath, locale);
+}
+
 /** Generate <link rel="alternate" hreflang> entries for a given base path. */
 export function hreflangLinks(basePath: string) {
-  const urls = generateStaticLocalizedUrls([`${SITE_URL}${basePath}`]);
-
   return [
-    ...urls.map((url) => ({
+    ...locales.map((locale) => ({
       rel: "alternate",
-      hrefLang: getLocaleForUrl(url),
-      href: url.href,
+      hrefLang: locale,
+      href: localizedUrl(basePath, locale),
     })),
     {
       rel: "alternate",
       hrefLang: "x-default",
-      href: `${SITE_URL}${localizeHref(basePath, { locale: baseLocale })}`,
+      href: localizedUrl(basePath, baseLocale),
     },
   ];
 }

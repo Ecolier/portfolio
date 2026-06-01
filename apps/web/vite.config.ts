@@ -17,8 +17,7 @@ export default defineConfig(({ command }) => {
       outdir: "./src/paraglide",
       outputStructure: "message-modules",
       emitTsDeclarations: true,
-      cookieName: "locale",
-      strategy: ["url", "cookie", "preferredLanguage", "baseLocale"],
+      strategy: ["url", "baseLocale"],
     }),
     tanstackStart({
       prerender: {

@@ -2,12 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getAboutPage, getSiteSettings } from "@/functions/getGlobals";
 import type { Locale } from "@/lib/locale";
 import {
+  canonicalUrl,
   hreflangLinks,
-  SITE_URL,
   ogLocale,
   ogLocaleAlternates,
 } from "@/lib/locale";
-import { localizeHref } from "@/paraglide/runtime.js";
+import { cleanMetaContent, SITE_NAME, socialImageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/about/")({
   staticData: {
@@ -31,16 +31,16 @@ export const Route = createFileRoute("/about/")({
   head: ({ loaderData, match }) => {
     if (!loaderData) return {};
     const locale = match.context.locale as Locale;
-    const canonical = localizeHref("/about", { locale });
-    const canonicalUrl = `${SITE_URL}${canonical}`;
+    const pageCanonicalUrl = canonicalUrl("/about", locale);
     const { aboutPage, siteSettings } = loaderData;
     const siteName = siteSettings.siteTitle || "Evan Gruère";
     const title = aboutPage.metaTitle || `${aboutPage.heading} — ${siteName}`;
-    const description =
+    const description = cleanMetaContent(
       aboutPage.metaDescription ||
-      aboutPage.body?.slice(0, 160) ||
-      siteSettings.siteDescription ||
-      "";
+        aboutPage.body?.slice(0, 160) ||
+        siteSettings.siteDescription ||
+        "",
+    );
     return {
       meta: [
         { title },
@@ -48,19 +48,20 @@ export const Route = createFileRoute("/about/")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "profile" },
-        { property: "og:url", content: canonicalUrl },
-        { property: "og:site_name", content: "Evan Gruère" },
+        { property: "og:url", content: pageCanonicalUrl },
+        { property: "og:site_name", content: SITE_NAME },
         { property: "og:locale", content: ogLocale(locale) },
         ...ogLocaleAlternates(locale).map((alt) => ({
           property: "og:locale:alternate",
           content: alt,
         })),
-        { name: "twitter:card", content: "summary" },
+        ...socialImageMeta(undefined, description),
+        { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
       ],
       links: [
-        { rel: "canonical", href: canonicalUrl },
+        { rel: "canonical", href: pageCanonicalUrl },
         ...hreflangLinks("/about"),
         ...(aboutPage.photo
           ? [

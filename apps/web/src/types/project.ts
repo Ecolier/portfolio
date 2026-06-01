@@ -9,7 +9,7 @@ type JsonValue =
   | JsonValue[]
   | { [k: string]: JsonValue };
 
-export type DescriptionNode = Omit<SerializedLexicalNode, "$"> & {
+type DescriptionNode = Omit<SerializedLexicalNode, "$"> & {
   $?: Record<string, JsonValue>;
 };
 
