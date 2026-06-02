@@ -167,7 +167,7 @@ function Home() {
                     to={localizeHref(`/projects/${project.slug}`, {
                       locale,
                     })}
-                    className="type-button border-b-2 border-b-accent-border text-accent-link hover:text-accent-link-hover inset-shadow-underline py-2"
+                    className="type-button border-b-2 border-b-gold-300 text-accent-link hover:text-accent-link-hover inset-shadow-underline py-2"
                   >
                     {m.cta_view_project()}
                   </RouterLink>

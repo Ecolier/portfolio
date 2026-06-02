@@ -124,7 +124,6 @@ function ProjectDetail() {
       <section className="">
         <Link
           to={localizeHref("/", { locale })}
-          hash="projects"
           className="type-ui mb-8 inline-flex items-center gap-1.5 text-muted-foreground no-underline"
         >
           <ArrowLeft size={16} aria-hidden="true" />
@@ -194,7 +193,7 @@ function ProjectDetail() {
                 href={project.website}
                 target="_blank"
                 rel="noreferrer"
-                className="type-button inline-flex items-center gap-2 border-b-2 border-b-accent-border py-2 text-accent-link no-underline inset-shadow-underline hover:text-accent-link-hover"
+                className="type-button inline-flex items-center gap-2 border-b-2 border-b-gold-300 py-2 text-accent-link no-underline inset-shadow-underline hover:text-accent-link-hover"
               >
                 <ArrowUpRight size={16} aria-hidden="true" />
                 {m.cta_website()}

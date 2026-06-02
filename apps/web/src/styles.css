@@ -11,7 +11,11 @@
   --spacing-nav: clamp(0.5rem, 4vw, 1rem);
   --spacing-cta: clamp(1rem, 8vw, 2rem);
 
-  --inset-shadow-underline: 0px 6px 0px 0px var(--color-accent-underline);
+  --inset-shadow-underline: 0px 6px 0px 0px color-mix(
+  in oklch,
+  var(--color-gold-300) 25%,
+  transparent
+);
 
   --color-white: white;
   --color-black: black;
@@ -26,13 +30,8 @@
   --color-neutral-600: oklch(0.375 0.05 275);
   --color-neutral-700: oklch(0.325 0.035 275);
   --color-neutral-800: oklch(0.23 0.02 279.71);
-  --color-neutral-900: oklch(0.202 0.018 278 / 1);
-  --color-neutral-950: oklch(0.134 0.01 278.81 / 1);
-
-  --color-cyan-300: oklch(0.68 0.25 255.75);
-
-  --color-sky-400: oklch(0.76 0.17 213.48);
-  --color-indigo-600: oklch(0.56 0.26 260.99);
+  --color-neutral-900: oklch(0.202 0.018 278);
+  --color-neutral-950: oklch(0.134 0.01 278.81);
 
   --color-lavender-50: oklch(0.97 0.02 312.94);
   --color-lavender-300: oklch(0.76 0.1 291.3);
@@ -44,15 +43,6 @@
 
   --color-gold-200: oklch(0.85 0.07 52.4);
   --color-gold-300: oklch(0.78 0.18 50.27);
-
-  --color-accent-50: oklch(0.875 0.075 275);
-  --color-accent-100: oklch(0.75 0.1 275);
-  --color-accent-200: oklch(0.675 0.15 275);
-  --color-accent-300: oklch(0.6 0.15 275);
-  --color-accent-500: oklch(0.45 0.25 275);
-  --color-accent-700: oklch(0.3 0.25 275);
-  --color-accent-900: oklch(0.15 0.25 275);
-  --color-accent-950: oklch(0.1 0.25 275);
 
   --color-surface-1-light: oklch(100% 0.1 275deg);
   --color-surface-1-dark: oklch(15% 0.2 275deg);
